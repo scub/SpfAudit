@@ -76,7 +76,7 @@ class dnsBroker( LoggedBase ):
             ###
 
         """
-        print node
+        #print node
         self.state[ 'qout' ].put( str( node ) )
 
     def build_host( self, node ):

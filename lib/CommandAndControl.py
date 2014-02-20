@@ -68,7 +68,7 @@ class CommandAndControl( LoggedBase ):
             
         self.state[ 'qin' ]
         
-        print 'Nameserver statistics'
+        #print 'Nameserver statistics'
         self.state[ 'nameserver' ].stats()
     
     def addWorker( self, worker_id ):
@@ -180,7 +180,7 @@ class CommandAndControl( LoggedBase ):
             if sql_data.find( "STOP" ) != -1:
                 stop_count += 1
                 
-            print sql_data
+            #print sql_data
             
         self._log( 'collect', 'DEBUG', 
             'Data harvest completed successfully! <3'
