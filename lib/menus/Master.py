@@ -6,6 +6,9 @@ from   datetime import datetime
 from   time     import sleep
 import curses
 
+# SubMenus
+from   sm_Probe import sm_Probe
+
 class MainMenu( object ):
 
     def __init__( self, CommandAndControl = None, workerCount = None, logPath = None, targeting = None ): 
@@ -26,6 +29,7 @@ class MainMenu( object ):
             # SubMenus And Statuses
             'm_opts'    : {
 
+                1 : ( 'dnsProbe',  sm_Probe      ),
                 9 : ( 'Exit',      self.cleanup  ),
 
             }
