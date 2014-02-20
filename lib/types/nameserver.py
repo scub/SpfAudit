@@ -53,14 +53,3 @@ class NameServer( object ) :
         nameserver = choice( [ key for key in self.nameservers.iterkeys() ] )
         self.nameservers[ nameserver ] += 1
         return nameserver
-
-
-if __name__ == '__main__':
-        from random import choice
-        
-        x = NameServer()
-        # Query random nameserver i time
-        for i in range( choice( range( 25 ) ) ):
-               print str( x )
-
-        print x.stats() 
