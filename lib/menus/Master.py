@@ -30,7 +30,7 @@ class MainMenu( object ):
             'm_opts'    : {
 
                 1 : ( 'dnsProbe',  sm_Probe      ),
-                9 : ( 'Exit',      self.cleanup  ),
+                9 : ( 'Exit',      self._cleanup  ),
 
             }
         }
@@ -68,7 +68,7 @@ class MainMenu( object ):
 
         self.main()
 
-    def runtime2block( self ):
+    def _runtime2block( self ):
 
         runTime = datetime.now() - self.meta[ 'startTime' ]
 
@@ -106,7 +106,7 @@ class MainMenu( object ):
             menu_ret = self.master_menu( menu_name = self.meta[ 'm_opts' ][ option ][ 0 ] )
 
 
-    def cleanup( self, screen, BotMaster ):
+    def _cleanup( self, screen, BotMaster ):
 
 
         # TESTING ( Flush Output Queues Before Exiting )
@@ -157,7 +157,7 @@ class MainMenu( object ):
             # Display Runtime
             self.meta[ 'screen' ].addstr( cur - 2, 5, "Run Time", curses.A_NORMAL )
             self.meta[ 'screen' ].addstr( cur - 1, 5, "========", curses.A_NORMAL )
-            for line in self.runtime2block():
+            for line in self._runtime2block():
                 self.meta[ 'screen' ].addstr( cur, 5, line, curses.A_NORMAL ) #( 2 ) ) 
                 cur += 1
 
