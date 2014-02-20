@@ -1,3 +1,4 @@
 makefile
 *.log
 *.pyc
+var/audit/lib
