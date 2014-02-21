@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from re       import match as regMatch
+from re       import findall, match as regMatch
 from random   import choice
 from datetime import datetime
 
@@ -200,9 +200,33 @@ class Node( object ):
     def _checkSpfMethod( self ):
         """
             Check SPF Methods
+                Rudimentary matching mechanism, pulls all directive
+                and respective modifier
+
                 NOT YET IMPLEMENTED
+
+             + Pass     - Allow Through
+             - Fail     - Fail Message Deny Passage (Best Practice)
+             ~ SoftFail - Should allow (google Fails) [used for testing]
+             ? Neutral  - Makes no judgement (will allow through if no other rules block)
+
+
+            ^"v\=(spf[0-9].*?(?:([+-~?])all.*)?)$
+
+            [ full_spf_record, all_filter_mechanism ]
+
+            .*([+-~])all.*
         """
-        pass
+        SPF_METHODS = { '+' : 'Pass', '-' : 'Fail', '~' : 'SoftFail', '?' : 'Neutral' }
+
+
+        if self.txt_records is None: return 'None'
+        for match in findall( '^"v\=(spf[0-9].*?(?:([\+\-\~\?])all.*)?)$', self.txt_records.lower() ):
+                if SPF_METHODS.has_key( match[ 1 ] ):
+                    return SPF_METHODS[ match[ 1 ] ]
+                else:
+                    return 'None'
+        return 'None'
 
 
     def reverseName( self ):
