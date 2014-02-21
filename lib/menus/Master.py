@@ -29,7 +29,7 @@ class MainMenu( object ):
             # SubMenus And Statuses
             'm_opts'    : {
 
-                1 : ( 'dnsProbe',  sm_Probe      ),
+                1 : ( 'dnsProbe',  sm_Probe       ),
                 9 : ( 'Exit',      self._cleanup  ),
 
             }
