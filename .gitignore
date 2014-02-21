@@ -2,3 +2,5 @@ makefile
 *.log
 *.pyc
 var/audit/lib
+lib/menus/sm_Debug.py
+etc/GeoLite2-City.mmdb
