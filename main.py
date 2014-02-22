@@ -20,6 +20,9 @@ if __name__ == '__main__':
     parser.add_argument( '-w', '--workers', dest = 'wcount',  default = None,
                          help = "Worker Count" )
 
+    parser.add_argument( '-g', '--geoip',   dest = 'geoPath', default = None,
+                         help = "GeoIP Database Path, If available. (MaxMind.mmdb)" )
+
     parser.add_argument( '-l', '--log',     dest = 'logPath', default = 'var/log/gmx_search.log', 
                          help = "Log File Path" )
 
@@ -31,6 +34,6 @@ if __name__ == '__main__':
         parser.print_help()
         exit( -1 )
 
-    Interactive( CommandAndControl, args.wcount, args.logPath, targeting )
+    Interactive( CommandAndControl, args.wcount, args.logPath, args.geoPath, targeting )
 
     print "Finished Host Results" 
