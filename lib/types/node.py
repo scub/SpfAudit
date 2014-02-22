@@ -143,6 +143,9 @@ class Node( object ):
                         # Elastic Search Event Type
                         'type'               : 'Node',
 
+                        # Master Node Ip
+                        'ip'                 : self.a_records[0],
+
                         # Collection Timestamp
                         'timestamp'          : datetime.ctime( datetime.now() ),
 
@@ -160,7 +163,6 @@ class Node( object ):
         
                         # Coordinates ( If Available )
                         'coordinates'        : self._checkCoords( geoip ),
-
                      },
         }
 
