@@ -11,14 +11,14 @@ from   sm_Probe import sm_Probe
 
 class MainMenu( object ):
 
-    def __init__( self, CommandAndControl = None, workerCount = None, logPath = None, targeting = None ): 
+    def __init__( self, CommandAndControl = None, workerCount = None, logPath = None, geoipPath = None, targeting = None ): 
 
         self.meta = {
 
             # List of Name tuples containing our workers meta
             'startTime' : datetime.now(),
 
-            'BotMaster' : CommandAndControl( workerCount = workerCount, logPath = logPath  ),
+            'BotMaster' : CommandAndControl( workerCount = workerCount, logPath = logPath, geoipPath = geoipPath  ),
 
             # Curses 
             'screen'    : None,
