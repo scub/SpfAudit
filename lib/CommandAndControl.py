@@ -5,6 +5,9 @@ from multiprocessing      import Queue, Process
 from Queue                import Empty as QueueEmpty
 from time                 import sleep
 
+# 3rd Party Libs (MaxMind Geoip2) pip install geoip2
+from geoip2.database      import Reader
+
 # Custom Libs
 from bots.bases           import LoggedBase
 from bots.dnsBroker       import dnsBroker 
@@ -20,7 +23,7 @@ class CommandAndControl( LoggedBase ):
 
     """
     
-    def __init__( self, workerCount=3, logPath = 'var/log/gmx_snoop.log' ):
+    def __init__( self, workerCount=3, logPath = 'var/log/gmx_snoop.log', geoipPath = None ):
         """
             Create new CommandAndControl object.
 
@@ -45,8 +48,11 @@ class CommandAndControl( LoggedBase ):
             # QUEUE THROTTLING ( 100 * # Workers )
             'throttle'    : int( workerCount ) * 100,
             'targets'     : [],
+
+            # GeoIP Goodies
+            'geoip'       : None if geoipPath is None else Reader( geoipPath ),
         }
-        
+
         for i in range( self.state[ 'workerCount' ] ):
             self.addWorker( i + 1 )
             
@@ -79,17 +85,19 @@ class CommandAndControl( LoggedBase ):
         worker = dnsBroker( workerId   = worker_id,
                             logPath    = self.state[ 'logPath'    ],
                             nameserver = self.state[ 'nameserver' ], 
+                            geoip      = self.state[ 'geoip'      ], 
                             qin        = self.state[ 'qin'        ], 
                             qout       = self.state[ 'qout'       ], 
                             metaQin    = metaQin, 
                             metaQout   = metaQout )
+                            
                             
         self.state[ 'workers' ].append( {
             'id'     : worker_id,
             'proc'   : Process( target=worker.background ),
             'worker' : worker,
             'mQin'   : metaQin,
-            'mQout'  : metaQout 
+            'mQout'  : metaQout,
         } )
 
         #self.state[ 'workers' ][-1][ 'proc' ].start()
