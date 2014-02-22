@@ -50,7 +50,7 @@ class Probe( LoggedBase ):
 
                 return domain.tld
         """
-        ptr = self.query( node.reverseName(), 'PTR' )
+        ptr      = self.query( node.reverseName(), 'PTR' )
         node.url = None if ptr is None else ".".join( [ str( x ).lower() for x in ptr ][0].split( '.' )[-3:-1:1] )
         return node.url
             
@@ -60,7 +60,7 @@ class Probe( LoggedBase ):
             exchange (MX) records. Results are returned for
             inline processing.
         """
-        mx = self.query( node.url, 'MX' )
+        mx              = self.query( node.url, 'MX' )
         node.mx_records = None if mx is None else ",".join( [ str( x ).lower()[:-1] for x in mx ] )
         return node.mx_records
         
@@ -71,7 +71,27 @@ class Probe( LoggedBase ):
             based records. Results are returned for inline processing.
 
         """
-        txt = self.query( node.url, 'TXT' )
+        txt              = self.query( node.url, 'TXT' )
         node.txt_records = None if txt is None else ",".join( [ str( x ).lower() for x in txt ] )
         return node.txt_records
+
+    def pull_geoip( self, node, geoip ):
+        """
+                Query GeoIP database for coordinates, then place them into the node
+            object. This stragely placed method was forced here due to the unpicklable 
+            nature of the geoip object, unwilling to cooporate with multiprocess.Queue.
+
+            @param Node   node   - Node() object; requires a single record in node.a_records
+            @param Reader geoip  - geoip.database.Reader() object; Using city database.
+
+            @return List         - Returns a list containing two floats [ Longitude, Latitude ]
+
+        """
+        response         = geoip.city( node.a_records[0] )
+        node.coordinates = [ response.location.longitude, response.location.latitude ]
+
+        #node.city        = response.city.name
+        #node.country     = response.country.name
+
+        return node.coordinates
 
