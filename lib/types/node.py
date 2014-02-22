@@ -46,7 +46,6 @@ class Node( object ):
 
     """
     def __init__( self,
-                  geoip              = None,
                   url                = None,
                   a_records          = None,
                   mx_records         = None,
@@ -54,6 +53,7 @@ class Node( object ):
                   txt_present        = None,
                   mx_hosted          = None,
                   spf_method         = None,
+                  coordinates        = None,
                   preferred_exchange = None ):
         """
             Create New Node Object
@@ -77,22 +77,22 @@ class Node( object ):
 
             @param String preferred_exchange - Preferred Mail Exchange For Domain.
         """
-        ( self.geoip,
-          self.url,
+        ( self.url,
           self.a_records,
           self.mx_records,
           self.txt_records,
           self.mx_hosted,
           self.txt_present,
           self.spf_method,
-          self.preferred_exchange ) = ( geoip,
-                                        url, 
+          self.coordinates,
+          self.preferred_exchange ) = ( url, 
                                         a_records,
                                         mx_records,
                                         txt_records,
                                         mx_hosted,
                                         txt_present,
                                         spf_method,
+                                        coordinates, 
                                         preferred_exchange )
 
         
@@ -111,7 +111,7 @@ class Node( object ):
         return '\n'.join( Output )
 
     
-    def convert( self, requested_form = "sql" ):
+    def convert( self, requested_form = "sql", geoip = None ):
         """
                 Convert node object into desired form, Options include
             sql and json.
@@ -159,7 +159,7 @@ class Node( object ):
                         'spf_method'         : self._checkSpfMethod(),
         
                         # Coordinates ( If Available )
-                        'coordinates'        : self._checkCoords(),
+                        'coordinates'        : self._checkCoords( geoip ),
 
                      },
         }
@@ -234,19 +234,23 @@ class Node( object ):
                     return 'None'
         return 'None'
 
-    def _checkCoords( self ):
+    def _checkCoords( self, geoip ):
         """
             Find Coordinates Given stored IP
 
             @return LIST( FLOAT, FLOAT )  - Coordinates - Feed to plotter
             @return None                  - Failed to retrieve, db not available
         """
-        if self.geoip is not None:
+        if self.coordinates is not None:
+            return self.coordinates
+
+        if geoip is not None:
             try:
-                response = self.geoip.city( self.a_records[0] )
+                response = geoip.city( self.a_records[0] )
                 return [ response.location.longitude, response.location.latitude ]
             except:
                 return 'None' 
+
         return 'None'
         
     def reverseName( self ):
