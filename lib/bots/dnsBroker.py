@@ -11,7 +11,7 @@ from dnsProbe   import Probe
 
 class dnsBroker( LoggedBase ):
 
-    def __init__( self, workerId, logPath, nameserver, qin = None, qout = None, metaQin = None, metaQout = None ):
+    def __init__( self, workerId, logPath, nameserver, qin = None, qout = None, metaQin = None, metaQout = None, geoip = None ):
 
         super( dnsBroker, self ).__init__( workerId      = workerId, 
                                            workerPurpose = "Probe",
@@ -41,6 +41,9 @@ class dnsBroker( LoggedBase ):
             # Meta Queues
             'mQin'    : metaQin,
             'mQout'   : metaQout,
+
+            # GeoIp Db Wrapper
+            'geoip'   : geoip,
         }
 
     def spam( self, node ):
@@ -50,7 +53,8 @@ class dnsBroker( LoggedBase ):
 
             @param Host host - Host() object containing host details to be logged
         """
-        self.state[ 'qout' ].put( str( node ) )
+        # Patch to pass raw node object
+        self.state[ 'qout' ].put( str( node ))
 
     def build_host( self, node ):
         """
@@ -69,18 +73,20 @@ class dnsBroker( LoggedBase ):
                 
                 NodeId = node.url
                 if self.state[ 'probe' ].resolve_a(   node ) is None: return node
-                if self.state[ 'probe' ].resolve_mx(  node ) is None: return node
-                self.state[    'probe' ].resolve_txt( node )
 
             elif node.a_records is not None:
 
                 NodeId = node.a_records[0]
                 if self.state[ 'probe' ].resolve_ptr( node ) is None: return node 
-                if self.state[ 'probe' ].resolve_mx(  node ) is None: return node 
-                self.state[    'probe' ].resolve_txt( node )
 
             else:
                 self._log( 'build_host', 'DEBUG', 'Empty host object detected, unable to process {}'.format( node ) )
+
+            if self.state[ 'geoip' ] is not None:
+                self.state[ 'probe' ].pull_geoip( node, self.state[ 'geoip' ] )
+
+            if self.state[ 'probe' ].resolve_mx(  node ) is None: return node
+            if self.state[ 'probe' ].resolve_txt( node ) is None: return node
 
         except:
             self._log( 'build_host', 'DEBUG', 'Lookup has failed for {}'.format( NodeId ) )
