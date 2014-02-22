@@ -4,6 +4,11 @@ from re       import findall, match as regMatch
 from random   import choice
 from datetime import datetime
 
+try:
+    from maxminddb import InvalidDatabaseError
+except ImportError as GeoIpUnavailable:
+    pass
+
 class Node( object ):
     """
         Node( Object )
@@ -36,8 +41,12 @@ class Node( object ):
 
             preferred_exchange - Preferred Mail Exchange For Domain
 
+            coordinates        - If Geoip database is present, this will contain the 
+                                 coordinates of the host machine.
+
     """
-    def __init__( self, 
+    def __init__( self,
+                  geoip              = None,
                   url                = None,
                   a_records          = None,
                   mx_records         = None,
@@ -68,14 +77,16 @@ class Node( object ):
 
             @param String preferred_exchange - Preferred Mail Exchange For Domain.
         """
-        ( self.url,
+        ( self.geoip,
+          self.url,
           self.a_records,
           self.mx_records,
           self.txt_records,
           self.mx_hosted,
           self.txt_present,
           self.spf_method,
-          self.preferred_exchange ) = ( url, 
+          self.preferred_exchange ) = ( geoip,
+                                        url, 
                                         a_records,
                                         mx_records,
                                         txt_records,
@@ -146,6 +157,9 @@ class Node( object ):
 
                         # None, Soft, Hard
                         'spf_method'         : self._checkSpfMethod(),
+        
+                        # Coordinates ( If Available )
+                        'coordinates'        : self._checkCoords(),
 
                      },
         }
@@ -228,7 +242,21 @@ class Node( object ):
                     return 'None'
         return 'None'
 
+    def _checkCoords( self ):
+        """
+            Find Coordinates Given stored IP
 
+            @return LIST( FLOAT, FLOAT )  - Coordinates - Feed to plotter
+            @return None                  - Failed to retrieve, db not available
+        """
+        if self.geoip is not None:
+            try:
+                response = self.geoip.city( self.a_records[0] )
+                return [ response.location.longitude, response.location.latitude ]
+            except:
+                return 'None' 
+        return 'None'
+        
     def reverseName( self ):
         """
                 Return ARPA Reverse Name For RDNS Lookups, only returns
