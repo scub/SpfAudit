@@ -41,7 +41,6 @@ class dnsBroker( LoggedBase ):
             # Meta Queues
             'mQin'    : metaQin,
             'mQout'   : metaQout,
-
         }
 
     def spam( self, node ):
@@ -50,33 +49,7 @@ class dnsBroker( LoggedBase ):
             Host objects for further perusal.
 
             @param Host host - Host() object containing host details to be logged
-
-            ###
-            # !!! JSONIFY HERE !!!
-            #   Json objects should only contain meta
-            #   for metrics.
-            #
-            # Annoying MX = mail[0-9].linode.com.
-            #
-            # Host Metrics
-            #    0) IP                  ( Host ID and overall GUID )
-            #    1) MX Present          ( MX Presence for given uri True/False)
-            #  1-A) Preferred Exchange
-            #    2) Hosted INTERNAL     ( MX Exchanges Hosted Internally )
-            #       Hosted EXTERNAL     ( MX Exchanges Hosted By Third Parties, Not Google )
-            #       Hosted GOOGLE       ( MX Exchanges Hosted By Google )
-            #    3) SPF Present         ( SPF Presence for given uri True/False )
-            #    4) SPF SOFTFAIL (~)    ( Bad practice  ~all )
-            #       SPF HARDFAIL (-)    ( Best practice -all )
-            #       SPF NEUTRAL  (?)    ( Allow Through ?all ) 
-            #       SPF ALLOWALL (+)    ( Badly Configured +all )
-            #       SPF Fail NONE       ( Misconfigured )
-            #
-            # Bonus Points Highest Preferable Exchange
-            ###
-
         """
-        #print node
         self.state[ 'qout' ].put( str( node ) )
 
     def build_host( self, node ):
@@ -155,7 +128,6 @@ class dnsBroker( LoggedBase ):
             # Increment Processed Record Count
             self.meta[ 'rcnt' ] += 1
 
-                
         self._log( 'background', 'DEBUG', 'Execution completed' )
                 
         return 
