@@ -3,5 +3,6 @@ makefile
 *.pyc
 *.swp
 var/audit/lib
+var/audit/etc
 lib/menus/sm_Debug.py
 etc/GeoLite2-City.mmdb

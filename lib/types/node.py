@@ -217,19 +217,11 @@ class Node( object ):
                 Rudimentary matching mechanism, pulls all directive
                 and respective modifier
 
-                NOT YET IMPLEMENTED
-
              + Pass     - Allow Through
              - Fail     - Fail Message Deny Passage (Best Practice)
              ~ SoftFail - Should allow (google Fails) [used for testing]
              ? Neutral  - Makes no judgement (will allow through if no other rules block)
 
-
-            ^"v\=(spf[0-9].*?(?:([+-~?])all.*)?)$
-
-            [ full_spf_record, all_filter_mechanism ]
-
-            .*([+-~])all.*
         """
         SPF_METHODS = { '+' : 'Pass', '-' : 'Fail', '~' : 'SoftFail', '?' : 'Neutral' }
 
