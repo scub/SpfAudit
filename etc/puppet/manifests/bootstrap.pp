@@ -21,11 +21,11 @@ class bootstrap {
             require => File[ '/etc/localtime' ];
 
         '/etc/hosts':
-            content => "127.0.0.1 localhost.localdomain localhost spf spf.aud.it\n::1 localhost6 spf6.aud.it",
+            content => "127.0.0.1 spf.aud.it spf localhost.localdomain localhost\n::1 spf6.aud.it spf6 localhost6.localdomain localhost6\n",
             require => File[ '/etc/hostname' ];
 
         '/etc/resolv.conf':
-            content => "search aud.it\nnameserver 8.8.8.8",
+            content => "search aud.it\nnameserver 8.8.8.8\n",
             require => File[ '/etc/hosts' ];
 
         '/etc/motd':
@@ -44,10 +44,20 @@ class bootstrap {
             require => File[ "/etc/resolv.conf" ];
     }
 
+    # Set Hostname Install Auxiliary Modules
     exec {
         'Set Hostname':
             command => "/bin/hostname -F /etc/hostname",
             require => File[ '/etc/motd' ];
-    }
 
+        'JFryman-Nginx':
+            command => "/usr/bin/puppet module install jfryman/nginx --modulepath /etc/puppet/modules",
+            creates => "/etc/puppet/modules/nginx",
+            require => Exec[ 'Set Hostname' ];
+
+        'Puppetlabs-Postgresql':
+            command => "/usr/bin/puppet module install puppetlabs-postgresql --modulepath /etc/puppet/modules",
+            creates => "/etc/puppet/modules/postgresql",
+            require => Exec[ 'JFryman-Nginx' ];
+    }
 }
