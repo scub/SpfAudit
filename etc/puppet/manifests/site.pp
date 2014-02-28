@@ -1,4 +1,6 @@
 import 'bootstrap'
+import 'dev_env'
+
 #
 #    Bootstrap base box with minimal host
 # information to boot on.
@@ -22,5 +24,6 @@ node 'ubuntu1310-i386' {
 #
 node 'spf' {
 
-    include bootstrap
+    include bootstrap, dev_env
+
 }
