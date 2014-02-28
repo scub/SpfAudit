@@ -8,14 +8,9 @@ import 'dev_env'
 node 'ubuntu1310-i386' {
     include bootstrap 
 
-    notify { 'Spam': message => 'Bootstrap successful, restarting guest machine for changes to take effect.' }
-    exec   {
-        'Trigger Restart':
-            command => "/sbin/shutdown -r now",
-            require => Class[ 'bootstrap' ]
-    }
+    notify { 'Spam': message => 'Bootstrap successful, run vagrant reload so that all changes take effect.' }
 
-    Class[ 'bootstrap' ] -> Notify[ 'Spam' ] -> Exec[ 'Trigger Restart' ]
+    Class[ 'bootstrap' ] -> Notify[ 'Spam' ] 
 }
 
 #   After Bootstrapping we install our dev
