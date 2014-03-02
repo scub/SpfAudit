@@ -50,14 +50,17 @@ class bootstrap {
             command => "/bin/hostname -F /etc/hostname",
             require => File[ '/etc/motd' ];
 
-        'JFryman-Nginx':
-            command => "/usr/bin/puppet module install jfryman/nginx --modulepath /etc/puppet/modules",
-            creates => "/etc/puppet/modules/nginx",
-            require => Exec[ 'Set Hostname' ];
-
         'Puppetlabs-Postgresql':
             command => "/usr/bin/puppet module install puppetlabs-postgresql --modulepath /etc/puppet/modules",
             creates => "/etc/puppet/modules/postgresql",
-            require => Exec[ 'JFryman-Nginx' ];
+            require => Exec[ 'Set Hostname' ];
+
+        'Freeze Kernel':
+            command => '/vagrant/etc/sbin/freeze_kernel.sh',
+            require => Exec[ 'Puppetlabs-Postgresql' ];
+
+        'Flush Stale Repo Cache':
+            command => '/usr/bin/apt-get update && /usr/bin/apt-get upgrade -y',
+            require => Exec[ 'Freeze Kernel' ];
     }
 }
