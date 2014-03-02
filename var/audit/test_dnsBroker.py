@@ -12,7 +12,7 @@ from lib.bots.dnsBroker   import dnsBroker
 
 qin, qout, metaQin, metaQout = Queue(), Queue(), Queue(), Queue()
 
-geoip = Reader( 'etc/GeoLite2-City.mmdb' )
+geoip = Reader( '/usr/share/geoip/GeoLite2-City.mmdb' )
 
 # Queue Meta Requests 
 metaQin.put( ( 'VERBOSE', None ) )

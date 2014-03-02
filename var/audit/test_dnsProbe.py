@@ -6,8 +6,7 @@ from lib.bots.dnsProbe    import Probe
 from lib.types.nameserver import NameServer
 from lib.types.node       import Node
 
-
-geoip = Reader( 'etc/GeoLite2-City.mmdb' ) 
+geoip = Reader( '/usr/share/geoip/GeoLite2-City.mmdb' ) 
 
 x     = Probe( 0, logPath = 'var/log/gmx_snoop.log', nameserver = NameServer() )
 host  = Node( a_records=['96.126.107.149'] )

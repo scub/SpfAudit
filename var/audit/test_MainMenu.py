@@ -8,4 +8,4 @@ def targeting():
     for i in range( 125, 150 ):
         yield Node( a_records = [ "96.126.107.{}".format( i ) ] )
 
-Interactive( CommandAndControl, 1, "var/log/test_MainMenu.log", targeting )
+Interactive( CommandAndControl = CommandAndControl, workerCount = 1, logPath = "var/log/test_MainMenu.log", geoipPath = "/usr/share/geoip/GeoLite2-City.mmdb", targeting = targeting )
