@@ -55,12 +55,13 @@ class bootstrap {
             creates => "/etc/puppet/modules/postgresql",
             require => Exec[ 'Set Hostname' ];
 
-        'Freeze Kernel':
-            command => '/vagrant/etc/sbin/freeze_kernel.sh',
-            require => Exec[ 'Puppetlabs-Postgresql' ];
-
         'Flush Stale Repo Cache':
             command => '/usr/bin/apt-get update && /usr/bin/apt-get upgrade -y',
-            require => Exec[ 'Freeze Kernel' ];
+            require => Exec[ 'Puppetlabs-Postgresql' ];
+
+        'Update Guest Utils':
+            command => '/usr/bin/apt-get install -y virtualbox-guest-utils',
+            timeout => 900,
+            require => Exec[ 'Flush Stale Repo Cache' ];
     }
 }
