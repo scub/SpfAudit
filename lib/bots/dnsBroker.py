@@ -54,7 +54,7 @@ class dnsBroker( LoggedBase ):
             @param Host host - Host() object containing host details to be logged
         """
         # Patch to pass raw node object
-        self.state[ 'qout' ].put( str( node ))
+        self.state[ 'qout' ].put( node )
 
     def build_host( self, node ):
         """
