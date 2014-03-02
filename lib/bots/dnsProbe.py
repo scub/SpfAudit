@@ -99,11 +99,14 @@ class Probe( LoggedBase ):
             @return List         - Returns a list containing two floats [ Longitude, Latitude ]
 
         """
-        response         = geoip.city( node.a_records[0] )
-        node.coordinates = [ response.location.longitude, response.location.latitude ]
+        try:
+            response         = geoip.city( node.a_records if type( node.a_records ) == str else node.a_records[ 0 ] )
+            node.coordinates = [ response.location.longitude, response.location.latitude ]
+            node.city        = response.city.name
+            node.country     = response.country.name
+        except ValueError as BadAddress:
+            node.coordinates = None
 
-        #node.city        = response.city.name
-        #node.country     = response.country.name
 
         return node.coordinates
 
