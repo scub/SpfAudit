@@ -1,0 +1,32 @@
+# Elastic Search 1.0.1 Configuration
+# 
+#
+# Naming Information
+cluster.name: "OmegaCluster" 
+
+node.name: "SPF-Audit"
+node.master: true
+node.data: true
+node.max_local_storage_nodes: 1
+
+# Indexing
+index.number_of_shards: 5
+index.number_of_replicas: 1
+
+# Locales
+path.conf: /etc/elasticsearch/
+
+# Host IP
+network.host: 127.0.0.1
+
+# Replication/Clustering Options
+transport.tcp.port: 9300
+transport.tcp.compress: true
+
+# HTTP Options
+http.port: 9200
+http.netty.maxInitialLineLength: 4096
+http.enabled: true
+
+# Disable cluster discovery
+discovery.zen.ping.multicast.enabled: false

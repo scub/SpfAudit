@@ -1,6 +1,7 @@
 import 'bootstrap'
 import 'dev_env'
 import 'daemon_prep'
+import 'elasticsearch'
 
 #
 #    Bootstrap base box with minimal host
@@ -20,8 +21,9 @@ node 'ubuntu1310-i386' {
 #
 node 'spf' {
 
-    include bootstrap, dev_env, daemon_prep
+    include bootstrap, dev_env, daemon_prep, elasticsearch
 
-    Class[ 'bootstrap' ] -> Class[ 'dev_env' ] -> Class[ 'daemon_prep' ]
+    Class[ 'bootstrap'     ] -> Class[ 'dev_env'   ] -> Class[ 'daemon_prep' ] ->
+    Class[ 'elasticsearch' ] 
 
 }
