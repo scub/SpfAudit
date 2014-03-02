@@ -73,7 +73,7 @@ class Probe( LoggedBase ):
             inline processing.
         """
         mx              = self.query( node.url, 'MX' )
-        node.mx_records = None if mx is None else ",".join( [ str( x ).lower()[:-1] for x in mx ] )
+        node.mx_records = None if mx is None else ",".join( [ str( x ).lower() for x in mx ] )
         return node.mx_records
         
     def resolve_txt( self, node ):
