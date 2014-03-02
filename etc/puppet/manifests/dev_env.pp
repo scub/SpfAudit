@@ -9,11 +9,19 @@ class dev_env {
     Package { ensure => latest }
     File    { owner  => vagrant,  group => vagrant }
 
+    file {
+        'Geoip Data':
+            ensure => directory,
+            path   => "/usr/share/geoip",
+            mode   => 755;
+    }
+
     # Pull down a few packages to make our lives easier
     package {
 
         'VIM':
-            name    => 'vim';
+            name    => 'vim',
+            require => File[ 'Geoip Data' ];
 
         'GIT':
             name    => 'git-core',
@@ -45,12 +53,13 @@ class dev_env {
             creates => "/tmp/GeoLiteCity.dat.gz",
             require => Exec[ 'geoip2' ];
 
+        # Moved From /vagrant/etc due to issues with py2.7 mmap.mmap()
+        # on a virtualized environment when used on a mounted directory
         'extract-geoip-databases':
-            command => "/bin/gunzip -c /tmp/GeoLite2-City.mmdb.gz > /vagrant/etc/GeoLite2-City.mmdb",
-            creates => "/vagrant/etc/GeoLite2-City.mmdb",
+            command => "/bin/gunzip /tmp/GeoLite2-City.mmdb.gz",
+            cwd     => "/usr/share/geoip/",
+            creates => "/usr/share/geoip/GeoLite2-City.mmdb",
             require => Exec[ 'download-geoip-database' ];
-
-        # SNATCH MX CSV DATA
     }
 
     # Setup Sym-links for our auditing cases
