@@ -48,16 +48,19 @@ class dev_env {
             command => "/usr/bin/pip install geoip2",
             require => Exec[ 'dnspython' ];
 
+        'Elastic-py':
+            command => "/usr/bin/pip install elasticsearch",
+            require => Exec[ 'geoip2' ];
+
         'download-geoip-database':
             command => "/usr/bin/curl -Lso /tmp/GeoLite2-City.mmdb.gz http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz", 
             creates => "/tmp/GeoLiteCity.dat.gz",
-            require => Exec[ 'geoip2' ];
+            require => Exec[ 'Elastic-py' ];
 
         # Moved From /vagrant/etc due to issues with py2.7 mmap.mmap()
         # on a virtualized environment when used on a mounted directory
         'extract-geoip-databases':
-            command => "/bin/gunzip /tmp/GeoLite2-City.mmdb.gz",
-            cwd     => "/usr/share/geoip/",
+            command => "/bin/gunzip -c /tmp/GeoLite2-City.mmdb.gz > /vagrant/etc/GeoLite2-City.mmdb",
             creates => "/usr/share/geoip/GeoLite2-City.mmdb",
             require => Exec[ 'download-geoip-database' ];
     }
