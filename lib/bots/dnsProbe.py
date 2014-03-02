@@ -18,6 +18,8 @@ class Probe( LoggedBase ):
             'resolver'   : Resolver(),
         }
 
+        self.state[ 'resolver' ].timeout = 1
+
 
     def query( self, hostInfo, recordType ):
         """
@@ -40,6 +42,16 @@ class Probe( LoggedBase ):
             )
             return None
         
+    def resolve_a( self, node ):
+        """
+            Query a random nameserver for a given host url's mail
+            exchange (MX) records. Results are returned for
+            inline processing.
+        """
+        a_records      = self.query( node.url, 'A' )
+        node.a_records = None if a_records is None else ','.join( [ str( x ) for x in a_records.rrset ] ) 
+        return node.a_records
+
     def resolve_ptr( self, node ):
         """
             Query a random nameserver for a given ip's rdns (PTR),
