@@ -60,9 +60,13 @@ class dev_env {
         # Moved From /vagrant/etc due to issues with py2.7 mmap.mmap()
         # on a virtualized environment when used on a mounted directory
         'extract-geoip-databases':
-            command => "/bin/gunzip -c /tmp/GeoLite2-City.mmdb.gz > /vagrant/etc/GeoLite2-City.mmdb",
+            command => "/bin/gunzip -c /tmp/GeoLite2-City.mmdb.gz > /usr/share/geoip/GeoLite2-City.mmdb",
             creates => "/usr/share/geoip/GeoLite2-City.mmdb",
             require => Exec[ 'download-geoip-database' ];
+
+        'set-perms-geoip':
+            command => "/bin/chown -R vagrant:vagrant /usr/share/geoip",
+            require => Exec[ 'extract-geoip-databases' ];
     }
 
     # Setup Sym-links for our auditing cases
