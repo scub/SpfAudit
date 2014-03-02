@@ -183,12 +183,15 @@ class CommandAndControl( LoggedBase ):
             sleep( self.state[ 'qin' ].qsize() )
         
         while stop_count < self.state[ 'workerCount' ]:
-            sql_data = self.state[ 'qout' ].get()
+            node = self.state[ 'qout' ].get()
                         
-            if sql_data.find( "STOP" ) != -1:
-                stop_count += 1
-                
-            #print sql_data
+	    if type( node ) == str:
+	            if node.find( "STOP" ) != -1:
+        	        stop_count += 1
+            else:
+		if all( map( lambda x: x is not None, 
+			     [ node.url, node.a_records, node.mx_records ] ) ):
+			print node
             
         self._log( 'collect', 'DEBUG', 
             'Data harvest completed successfully! <3'
