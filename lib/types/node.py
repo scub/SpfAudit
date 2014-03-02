@@ -102,13 +102,17 @@ class Node( object ):
             Possibly return a tuple for later insertion into the sql statement
             using the injection filtering ? functionality.
         """
-        Output = [ "Node( {} ):".format( self.url ), ] 
-        for key, value in self.convert( 'json' ).iteritems():
-            Output.append( "\t{:<20} = {}".format( key, value ) ) 
 
-        Output.append( '\n' )
+        try:
+            Output = [ "Node( {} ):".format( self.url ), ] 
+            for key, value in self.convert( 'json' ).iteritems():
+                Output.append( "\t{:<20} = {}".format( key, value ) ) 
 
-        return '\n'.join( Output )
+            Output.append( '\n' )
+
+            return '\n'.join( Output )
+        except:
+            return '' 
 
     
     def convert( self, requested_form = "sql", geoip = None ):
