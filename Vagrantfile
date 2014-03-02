@@ -1,5 +1,6 @@
 # SPF Audit 
-#
+# :set ts=2 sts=2 sw=2 et
+# 
 # BaseBox
 # -------
 #
@@ -19,12 +20,12 @@ Vagrant.configure( "2" ) do |config|
   config.vm.box_url = "http://puppet-vagrant-boxes.puppetlabs.com/ubuntu-1310-i386-virtualbox-puppet.box"
 
   # Forwards, Kibana - Nginx Forward 
-  config.vm.network :forwarded_port, guest: 80, host: 8989
+  config.vm.network :forwarded_port, guest: 80, host: 8080 
 
   # VirtualBox, Gross... 
   config.vm.provider :virtualbox do |vb|
-   # Beef up the ram to 1Gb
-   vb.customize ["modifyvm", :id, "--memory", "1024"]
+    # Beef up the ram to 1Gb
+    vb.customize ["modifyvm", :id, "--memory", "1024"]
   end
   
   # PUPPET, RAWRRRR! 
