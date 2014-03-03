@@ -10,15 +10,27 @@ from lib.types.node        import Node
 
 
 def targeting():
-    for i in range( 125, 150 ):
-        yield Node( a_records = [ "96.126.107.{}".format( i ) ] )
+    """
+        Pull our benchmarking data
+    """
+    with open( "etc/dom_bench.txt", "r" ) as fd:
+        for line in fd:
+            yield Node( url = line.strip() )
+
+    # Lets Throw Some Ips In the mix for good measure
+    for i in range( 0, 10 ):
+        yield Node( a_records = [ "96.126.107.14{}".format( i ) ] )
+
 
 if __name__ == '__main__':
 
-    parser = ArgumentParser( description = "CmpSc 294 - MX Proposal" )
+    parser = ArgumentParser( description = "CmpSc 294 - Final Proposal [ SPF.AUD.IT ]" )
 
     parser.add_argument( '-w', '--workers', dest = 'wcount',  default = None,
                          help = "Worker Count" )
+
+    parser.add_argument( '-e', '--eBroker', dest = 'ecount',  default = 3,
+                         help = "Json Broker Count" )
 
     parser.add_argument( '-g', '--geoip',   dest = 'geoPath', default = None,
                          help = "GeoIP Database Path, If available. (MaxMind.mmdb)" )
@@ -26,8 +38,6 @@ if __name__ == '__main__':
     parser.add_argument( '-l', '--log',     dest = 'logPath', default = 'var/log/gmx_search.log', 
                          help = "Log File Path" )
 
-
-    
     args = parser.parse_args()
 
     if not all( map( lambda x: x is not None, [ args.wcount, args.logPath ] ) ):
