@@ -146,7 +146,11 @@ class Node( object ):
                         'type'               : 'Node',
 
                         # Master Node Ip
-                        'ip'                 : self.a_records[0], 
+                        'ip'                 : self.a_records[0] if type( self.a_records ) == list else self.a_records,
+
+                        # Url
+                        'url'                : self.url,
+
                         # Collection Timestamp
                         '@timestamp'         : datetime.now(),
 
