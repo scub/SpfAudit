@@ -129,16 +129,14 @@ class Node( object ):
 
         available_repr = {
             # Collected Data ( Postgresql - SQL Broker )
-            'sql'  : ( "INSERT INTO ? VALUES ( ?, ?, ?, ?, ?, ?, ? );",
-                         (
-                            'NULL' if self.url           is None else "'{}'".format( self.url         ),
-                            'NULL' if self.a_records     is None else "'{}'".format( self.a_records   ),
-                            'NULL' if self.mx_records    is None else "'{}'".format( self.mx_records  ),
-                            'NULL' if self.txt_records   is None else "'{}'".format( self.txt_records ),
-                            'NULL' if self.mx_hosted     is None else "'{}'".format( self.mx_hosted   ),
-                            'NULL' if self.spf_method    is None else "'{}'".format( self.spf_method  ),
-                            1      if self.txt_present   is True else 0 
-                         ) 
+            'sql'  : ( 
+                        'NULL' if self.url           is None else "'{}'".format( self.url         ),
+                        'NULL' if self.a_records     is None else "'{}'".format( self.a_records   ),
+                        'NULL' if self.mx_records    is None else "'{}'".format( self.mx_records  ),
+                        'NULL' if self.txt_records   is None else "'{}'".format( self.txt_records ),
+                        'NULL' if self.mx_hosted     is None else "'{}'".format( self.mx_hosted   ),
+                        'NULL' if self.spf_method    is None else "'{}'".format( self.spf_method  ),
+                        True   if self.txt_present   is True else False,
                      ),
 
 
@@ -148,7 +146,7 @@ class Node( object ):
                         'type'               : 'Node',
 
                         # Master Node Ip
-                        'ip'                 : self.a_records[0],
+                        'ip'                 : self.a_records[0], 
 
                         # Collection Timestamp
                         'timestamp'          : datetime.ctime( datetime.now() ),
