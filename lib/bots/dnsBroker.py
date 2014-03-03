@@ -21,6 +21,20 @@ class dnsBroker( LoggedBase ):
                   metaQin   = None, 
                   metaQout  = None, 
                   geoip     = None ):
+        """
+
+            Create DNS Broker
+
+            @param int        workerId   - Worker Id
+            @param String     logPath    - Path to log to
+            @param NameServer nameserver - Namerserver object
+            @param Queue      sqout      - SqlBroker Input  Queue
+            @param Queue      eqout      - Json Broker Output Queue
+            @param Queue      metaQin    - Meta Input Queue  (Used by menus)
+            @param Queue      metaQout   - Meta Output Queue (Used by menus)
+            @param Reader     geoip      - Initialized geoip2.database.Reader object
+
+        """
 
         super( dnsBroker, self ).__init__( workerId      = workerId, 
                                            workerPurpose = "Probe",
