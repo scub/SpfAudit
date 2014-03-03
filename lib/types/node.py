@@ -147,9 +147,8 @@ class Node( object ):
 
                         # Master Node Ip
                         'ip'                 : self.a_records[0], 
-
                         # Collection Timestamp
-                        'timestamp'          : datetime.ctime( datetime.now() ),
+                        '@timestamp'         : datetime.now(),
 
                         # Txt Records Present
                         'txt_present'        : True if self.txt_records is not None else False,
