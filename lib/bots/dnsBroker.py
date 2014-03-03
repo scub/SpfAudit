@@ -11,7 +11,16 @@ from dnsProbe   import Probe
 
 class dnsBroker( LoggedBase ):
 
-    def __init__( self, workerId, logPath, nameserver, qin = None, qout = None, metaQin = None, metaQout = None, geoip = None ):
+    def __init__( self, 
+                  workerId, 
+                  logPath, 
+                  nameserver, 
+                  qin       = None, 
+                  sqout     = None, 
+                  eqout     = None,
+                  metaQin   = None, 
+                  metaQout  = None, 
+                  geoip     = None ):
 
         super( dnsBroker, self ).__init__( workerId      = workerId, 
                                            workerPurpose = "Probe",
@@ -23,7 +32,9 @@ class dnsBroker( LoggedBase ):
             'id'      : workerId,
 
             # DNS Probe
-            'probe'   : Probe( workerId = workerId, logPath = logPath, nameserver = nameserver ),
+            'probe'   : Probe( workerId   = workerId, 
+                               logPath    = logPath, 
+                               nameserver = nameserver ),
 
             # Google MX Regex
             'rgmx'    : reg_compile( "([0-9]+)\s(.*\.google(?:mail)?\.com$)" ),
@@ -36,7 +47,8 @@ class dnsBroker( LoggedBase ):
 
             # I/O Queues
             'qin'     : qin,
-            'qout'    : qout,
+            'sqout'   : sqout,
+            'eqout'   : eqout,
 
             # Meta Queues
             'mQin'    : metaQin,
@@ -54,7 +66,8 @@ class dnsBroker( LoggedBase ):
             @param Host host - Host() object containing host details to be logged
         """
         # Patch to pass raw node object
-        self.state[ 'qout' ].put( node )
+        map( lambda queue: queue.put( node ), 
+             [ self.state[ i ] for i in [ 'eqout', 'sqout' ] ] )
 
     def build_host( self, node ):
         """
@@ -118,7 +131,7 @@ class dnsBroker( LoggedBase ):
             if type( HostData ) == str:
                 if HostData.find( "STOP" ) != -1:
                     self._log( 'background', 'DEBUG', 'Recieved stop, inserting stop into output queue' )
-                    self.state[ 'qout' ].put( 'STOP' )
+                    self.state[ 'mQout' ].put( 'STOP' )
                     self.state[ 'alive' ] = False
                     break
             
