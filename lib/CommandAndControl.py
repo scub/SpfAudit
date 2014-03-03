@@ -15,6 +15,32 @@ from bots.esBroker        import esBroker
 from lib.types.nameserver import NameServer
 
 class CommandAndControl( LoggedBase ):
+    """
+        Command And Control
+        -------------------
+
+            Acts as an intermediary between all processes,
+        managing queues and shared resources. 
+
+        private
+        -------
+        def _newId( self )
+        def _initWorkforce( self )
+        def _flushQueue( self, queue )
+        def _stopWorker( self, worker )
+
+        public
+        ------
+        def __init__( self, workerCount, eBrokerCount, sBrokerCount, logPath, geoipPath )
+        def __del__( self )
+        def powerWorkforce( self )
+        def cleanupWorkforce( self )
+        def addWorker( self, worker_id )
+        def addBroker( self, worker_id, Broker, brokerList, qin )
+        def pushTargets( self, target_generator )
+        def collect( self )
+
+    """
     
     def __init__( self, 
                   workerCount  = 3, 
