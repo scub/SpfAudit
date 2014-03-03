@@ -10,8 +10,12 @@ from lib.types.node        import Node
 
 
 def targeting():
-    for i in range( 125, 200 ):
-        yield Node( a_records = [ "96.126.107.{}".format( i ) ] )
+    """
+        Pull our benchmarking data
+    """
+    with open( "etc/dom_bench.txt", "r" ) as fd:
+        for line in fd:
+            yield Node( url = line.strip() )
 
 cnc = BotMaster( workerCount = 1, logPath = 'var/log/audit_commandAndControl.log', geoipPath = '/usr/share/geoip/GeoLite2-City.mmdb' )
 
@@ -24,7 +28,7 @@ cnc.powerWorkforce()
 while not cnc.state[ 'qin' ].empty():
     try:
         queuedMeta = mQout.get_nowait() 
-        print queuedMeta
+        #print "{}:".format( queuedMeta[0] ),"\n",queuedMeta[1]
     except QueueEmpty as NoMeta:
         continue
 
