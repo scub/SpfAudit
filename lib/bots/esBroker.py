@@ -4,82 +4,60 @@ from Queue                    import Empty as QueueEmpty
 from elasticsearch            import Elasticsearch
 from elasticsearch.exceptions import NotFoundError
 from bases                    import LoggedBase
-from geoip2.database          import Reader
-from datetime                 import datetime
+from brokerBase               import brokerBase
 
-class esBroker( LoggedBase ):
+class esBroker( brokerBase ):
 
     def __init__( self, workerId, logPath, qin = None, metaQin = None, metaQout = None, geoip = None ):
 
         super( esBroker, self ).__init__( workerId      = workerId,
                                           workerPurpose = "ElasticBroker",
-                                          logPath       = logPath )
+                                          logPath       = logPath,
+                                          qin           = qin,
+                                          metaQin       = metaQin,
+                                          metaQout      = metaQout )
 
-        self.state = {
-
-            'id'    : workerId,
+        self.state.update( {
             'es'    : Elasticsearch(), 
-            'qin'   : qin,
-            'mQin'  : metaQin,
-            'mQout' : metaQout,
             'geoip' : geoip,
             'alive' : True,
+        } )
 
-        }
+
+    def find( self, node ):
+        """
+
+        """
+        try:
+            res = self.state[ 'es' ].search( index = 'spfaudit', body = {
+                'query' : { 'term' : { 
+                    'url' : node.url,
+                    'ip'  : node.a_records if type( node.a_records ) != list else node.a_records[0],
+                } }
+            } ) 
+
+            return False if res[ 'hits' ][ 'total' ] == 0 else True 
+
+        except NotFoundError as Uncataloged:
+            return False
 
     def process( self, node ):
         """
             
         """
-        if type( node ) != str:
-            if all( map( lambda x: x is not None,
-                         [ node.url, node.a_records, node.mx_records ] ) ):
+        # do we have a node object?
+        if type( node ) == str: return
 
-                obj = node.convert( 'json', self.state[ 'geoip' ] )
+        # Do we fit the aggregation requirements?
+        if not all( map( lambda x: x is not None,
+                         [ node.url, node.a_records, node.mx_records ] ) ): return
 
-                try: 
-                    res = self.state[ 'es' ].search( index = "spfaudit", body = { "query": {
-                        "term": {
-                            'url'  : node.url,
-                            'ip'   : node.a_records[0],
-                        }   
-                    }})
+        # Have we already been cataloged?
+        if self.find( node ): return         
 
-                    if res[ 'hits' ][ 'total' ] == 0:
-                        self.state[ 'es' ].index( index     = "spfaudit", doc_type  = "node", body = obj )
-                except NotFoundError as IndexNonExistant:
-                    self.state[ 'es' ].index( index     = "spfaudit", doc_type  = "node", body = obj )
-
-    def background( self ):
-        """
-
-        """
-        while self.state[ 'alive' ]:
-
-            self._processMeta( self.state[ 'mQin' ], self.state[ 'mQout' ] )
-        
-            try:
-                NodeObj = self.state[ 'qin' ].get_nowait()
-
-            except QueueEmpty as AwaitingNodeObject:
-                continue
-
-            if type( NodeObj ) != str:
-
-                # Buffer last record
-                self.meta[ 'lrcd' ] = NodeObj
-
-                # Process Node Object
-                self.process( NodeObj )
-
-                # Increment Record Counter
-                self.meta[ 'rcnt' ] += 1
-
-            else:
-                self._log( 'background', 'DEBUG', 'Recieved stop, stopping execution' )
-                self.state[ 'alive' ] = False
-                break
-
-        self._log( 'background', 'DEBUG', 'Execution Complete' )
-
-        return 
+        # Woohoo, A New Boxen. Lets Catalog It!
+        self.state[ 'es' ].index( index    = "spfaudit", 
+                                  doc_type = "node", 
+                                  body     = node.convert( 'json', 
+                                                           self.state[ 'geoip' ] )
+        )
