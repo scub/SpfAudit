@@ -6,10 +6,11 @@ from Queue      import Empty   as QueueEmpty
 from random     import choice
 
 # Custom libs
-from bases      import LoggedBase
+#from bases      import LoggedBase
+from brokerBase import brokerBase
 from dnsProbe   import Probe
 
-class dnsBroker( LoggedBase ):
+class dnsBroker( brokerBase ):
 
     def __init__( self, 
                   workerId, 
@@ -23,11 +24,14 @@ class dnsBroker( LoggedBase ):
                   geoip     = None ):
         """
 
-            Create DNS Broker
-
+               Create DNS Broker, Solicit's Nameservers for Queued host
+            information before forwarding host object to aggregation 
+            brokers. 
+            
             @param int        workerId   - Worker Id
             @param String     logPath    - Path to log to
             @param NameServer nameserver - Namerserver object
+            @param Queue      qin        - Input Queue
             @param Queue      sqout      - SqlBroker Input  Queue
             @param Queue      eqout      - Json Broker Output Queue
             @param Queue      metaQin    - Meta Input Queue  (Used by menus)
@@ -38,12 +42,12 @@ class dnsBroker( LoggedBase ):
 
         super( dnsBroker, self ).__init__( workerId      = workerId, 
                                            workerPurpose = "Probe",
-                                           logPath       = logPath )
+                                           logPath       = logPath,
+                                           qin           = qin, 
+                                           metaQin       = metaQin,
+                                           metaQout      = metaQout )
 
-        self.state = {
-
-            # Worker ID
-            'id'      : workerId,
+        self.state.update( {
 
             # DNS Probe
             'probe'   : Probe( workerId   = workerId, 
@@ -56,40 +60,34 @@ class dnsBroker( LoggedBase ):
             # SPF Regex
             'rgspf'   : reg_compile( '^"v\=(spf[0-9].*)"$' ),
             
-            # Bot Run Status
-            'alive'   : True,
-
-            # I/O Queues
-            'qin'     : qin,
+            # Output QUeues
             'sqout'   : sqout,
             'eqout'   : eqout,
 
-            # Meta Queues
-            'mQin'    : metaQin,
-            'mQout'   : metaQout,
 
             # GeoIp Db Wrapper
             'geoip'   : geoip,
-        }
+ 
+        } )
 
     def spam( self, node ):
         """
             Spam Respective Brokers With Metrics Harvested from
             Host objects for further perusal.
 
-            @param Host host - Host() object containing host details to be logged
+            @param  Host host - Host() object containing host details to be logged
+
+            @return None
         """
-        # Patch to pass raw node object
         map( lambda queue: queue.put( node ), 
              [ self.state[ i ] for i in [ 'eqout', 'sqout' ] ] )
 
     def build_host( self, node ):
         """
-            Given the ip of a machine, perform a dns lookup for the following
-            record types (in order): PTR, MX, TXT;
+            Given the ip or url of a machine, perform a dns lookup for 
+            the following record types (in order): (PTR|A), MX, TXT;
 
-            @param String ip  - String representation of host ip
-                                eg: "127.0.0.1"
+            @param  Node node - Node() object prepped with a_records or url
 
             @return Host host - Host object containing returned dns records.
         """
@@ -109,10 +107,14 @@ class dnsBroker( LoggedBase ):
             else:
                 self._log( 'build_host', 'DEBUG', 'Empty host object detected, unable to process {}'.format( node ) )
 
+            # Pull Coords If Geoip Available
             if self.state[ 'geoip' ] is not None:
                 self.state[ 'probe' ].pull_geoip( node, self.state[ 'geoip' ] )
 
-            if self.state[ 'probe' ].resolve_mx(  node ) is None: return node
+            # Ignore everything without an exchange
+            if self.state[ 'probe' ].resolve_mx(  node ) is None: return None 
+
+            # Pull down our TXT records
             if self.state[ 'probe' ].resolve_txt( node ) is None: return node
 
         except:
@@ -120,47 +122,10 @@ class dnsBroker( LoggedBase ):
 
         return node
 
-    def background( self ):
-        """
-            Using queues have worker run unhindered, without the requirement
-            of manually specifying individual host addresses. Designed to be
-            used in tandem with multiprocessing.Process()
 
-        """
-        
-        self._log( 'background', 'DEBUG', 'Starting Execution.' )
-        while self.state[ 'alive' ]:
+    def process( self, node ):
 
-            # Process Meta Requests Before Starting On Current Host
-            self._processMeta( self.state[ 'mQin' ], self.state[ 'mQout' ] )
-
-            # Check For Queued Input
-            try:
-                HostData = self.state[ 'qin' ].get_nowait()
-
-            except QueueEmpty:
-                self._log( 'background', 'DEBUG', 'Nothing Queued For Processing [{}]'.format( self.state[ 'qin' ].qsize() )  )
-                continue
-
-            if type( HostData ) == str:
-                if HostData.find( "STOP" ) != -1:
-                    self._log( 'background', 'DEBUG', 'Recieved stop, inserting stop into output queue' )
-                    self.state[ 'mQout' ].put( 'STOP' )
-                    self.state[ 'alive' ] = False
-                    break
-            
-            # Buffer Last Processed Record 
-            self.meta[ 'lrcd' ] = HostData
-
-            # Retrieve Host Info
-            host = self.build_host( HostData )
-
-            # Spam Results To Brokers
+        host = self.build_host( node ) 
+        del node
+        if host is not None:
             self.spam( host )
-
-            # Increment Processed Record Count
-            self.meta[ 'rcnt' ] += 1
-
-        self._log( 'background', 'DEBUG', 'Execution completed' )
-                
-        return 
