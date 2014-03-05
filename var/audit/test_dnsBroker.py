@@ -51,20 +51,3 @@ x.background()
 
 print 'eQout [ {} ] sQout [ {} ]'.format( eqout.qsize(), sqout.qsize() )
 map( flushQueue, [ qin, eqout, sqout, metaQin, metaQout ] )
-"""
-while sqout.qsize() > 0:
-    try:
-        out = qout.get()
-        if "STOP" not in out:
-            print out
-        else:
-            break
-    except QueueEmpty as FinishedProcessing:
-        break
-
-# Flush Queues
-for k, q in [ ( 'qin', qin ), ( 'qout', qout ), ( 'mQin', metaQin ), ( 'mQout', metaQout ) ]:
-    while q.empty() == False:
-        print "[{}] Remnants: {}".format( k, q.get_nowait() )
-    q.close()
-"""
