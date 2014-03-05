@@ -51,7 +51,7 @@ class dev_env {
         'Elastic-py':
             command => "/usr/bin/pip install elasticsearch",
             require => Exec[ 'geoip2' ];
-
+            
         'download-geoip-database':
             command => "/usr/bin/curl -Lso /tmp/GeoLite2-City.mmdb.gz http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz", 
             creates => "/tmp/GeoLiteCity.dat.gz",
