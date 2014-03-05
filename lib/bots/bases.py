@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from Queue           import Empty as QueueEmpty
-from multiprocessing import Queue
-import logging
+from    Queue           import Empty as QueueEmpty
+from    multiprocessing import Queue
+import  logging
 
 LOGLEVEL = logging.NOTSET
 
@@ -16,15 +16,20 @@ class LoggedBase( object ):
     def __init__( self, workerId = None, workerPurpose = None, logPath = None, **kwargs  ):
         """
                 Create LoggedBase object to centralize logging 
-            and meta processing
+            and meta request processing.
 
-            @param INT    workerId
-            @param STRING workerPurpose
-            @param STRING logPath
-            @param DICT   **kwargs
+            @param int        workerId      - Worker Id
+            @param STRING     workerPurpose - Worker Purpose, Used to create logging handler
+            @param String     logPath       - Path to log to
+            @param DICT       **kwargs      - If extending class requires more meta information, 
+                                              it can be fed through here as a dictionary; 
+                                              (Unrequired under normal operation; Likely to be purged)
 
             @return LoggedBase()
         """
+
+        super( LoggedBase, self ).__init__()
+
         import logging
 
         self.meta = {
