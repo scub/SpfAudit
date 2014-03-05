@@ -15,6 +15,10 @@ class Node( object ):
 
             This object is used to aggregate collected records and statistics for a given node.
 
+                 The use of __slots__ was contemplated for this object but avoided due to the 
+            unpickable nature of the objects it creates, as objects need to be serialized before 
+            they are queued doing so would break upstream during interprocess communication.
+
         Records
         =======
 
@@ -199,7 +203,6 @@ class Node( object ):
                              External (MX Hosted By Third Parties, Not Including Google)
                              Google   (MX Hosted By Google)
         """
-
         # Do We Have Valid Records To Check?
         if self.mx_records is None: return None                
 
@@ -207,7 +210,7 @@ class Node( object ):
         exchanges = map( lambda record: record.split()[1], self.mx_records.split( ',' ) )
 
         # Does Google Host? 
-        if all( map( lambda x: True if regMatch( "^(.*\.google(?:mail)?\.com)$", x.lower() ) else False, 
+        if all( map( lambda x: True if regMatch( "^(.*\.google(?:mail)?\.com.)$", x.lower() ) else False, 
                      exchanges ) ):
             return "Google" 
 
@@ -231,7 +234,6 @@ class Node( object ):
 
         """
         SPF_METHODS = { '+' : 'Pass', '-' : 'Fail', '~' : 'SoftFail', '?' : 'Neutral' }
-
 
         if self.txt_records is None: return 'None'
         for match in findall( '^"v\=(spf[0-9].*?(?:([\+\-\~\?])all.*)?)$', self.txt_records.lower() ):
