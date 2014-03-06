@@ -26,13 +26,13 @@ if __name__ == '__main__':
 
     parser = ArgumentParser( description = "CmpSc 294 - Final Proposal [ SPF.AUD.IT ]" )
 
-    parser.add_argument( '-w', '--workers', dest = 'wcount',  default = None,
+    parser.add_argument( '-w', '--workers', dest = 'wcount',  default = 3,
                          help = "Worker Count" )
 
-    parser.add_argument( '-e', '--eBroker', dest = 'ecount',  default = 3,
+    parser.add_argument( '-e', '--eBroker', dest = 'ecount',  default = 2,
                          help = "Json Broker Count" )
 
-    parser.add_argument( '-g', '--geoip',   dest = 'geoPath', default = None,
+    parser.add_argument( '-g', '--geoip',   dest = 'geoPath', default = '/usr/share/geoip/GeoLite2-City.mmdb',
                          help = "GeoIP Database Path, If available. (MaxMind.mmdb)" )
 
     parser.add_argument( '-l', '--log',     dest = 'logPath', default = 'var/log/gmx_search.log', 
