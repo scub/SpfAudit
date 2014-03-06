@@ -161,6 +161,9 @@ class Node( object ):
                         # Txt Records Present
                         'txt_present'        : True if self.txt_records is not None else False,
 
+                        # TXT Records (spf included)
+                        'txt_record'         : self.txt_records,
+
                         # Hosted By: Internal (Matches URL), Google Mail
                         'mx_hosted'          : self._checkMxHosted(),
 
