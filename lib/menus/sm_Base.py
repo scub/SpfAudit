@@ -6,15 +6,17 @@ import curses
 
 class sm_Base( object ):
 
-    def __init__( self, screen, botMaster, menuName, menuOptions = None, throttle = 1 ):
+    def __init__( self, screen, botMaster, botList, menuName, menuOptions = None, throttle = 1 ):
     
         super( sm_Base, self ).__init__()
 
         ( self.screen, 
           self.botMaster,
+          self.botList,
           self.menuName,
           self.throttle   ) = ( screen,
                                 botMaster,
+                                botList,
                                 menuName,
                                 throttle ) 
 
@@ -54,8 +56,8 @@ class sm_Base( object ):
         # Can be more effecient PATCH.PATCH.PATCH 
         for key, signal in self.SIGNALS.iteritems():
             if key_in == ord( key ):
-                if all( map( lambda x: x[ 'proc' ].is_alive(), self.botMaster.state[ 'workers' ] ) ):
-                    map( lambda broker: broker[ 'mQin' ].put( signal ), self.botMaster.state[ 'workers' ] )
+                if all( map( lambda x: x[ 'proc' ].is_alive(), self.botMaster.state[ self.botList ] ) ):
+                    map( lambda broker: broker[ 'mQin' ].put( signal ), self.botMaster.state[ self.botList ] )
                 else:
                     screen.addstr( self.y_max - 5, 2, "[!] {} has finished processing.".format( self.menuName ), curses.A_NORMAL )
                     screen.scroll() 
@@ -65,7 +67,7 @@ class sm_Base( object ):
     def view( self ):
 
         screen  = self._frame( self.screen )
-        Brokers = self.botMaster.state[ 'workers' ]
+        Brokers = self.botMaster.state[ self.botList ]
         key_in  = screen.getch()
 
         # Have we been asked to exit?
@@ -74,7 +76,6 @@ class sm_Base( object ):
             for broker in Brokers:
 
                 try:
-
                     meta = broker[ 'mQout' ].get_nowait()
                     if "DATA" in meta[ 0 ]:
                         screen.addstr( self.y_max - 5, 2, "{}".format( meta[1] ), curses.A_NORMAL )
