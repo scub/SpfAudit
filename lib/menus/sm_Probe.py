@@ -8,6 +8,7 @@ class sm_Probe( sm_Base ):
 
         super( sm_Probe, self ).__init__( screen      = screen,
                                           botMaster   = botMaster,
+                                          botList     = 'workers',
                                           menuName    = "DNS Probe",
                                           menuOptions = "(W)atch (S)tatus (P)rogress",
                                           throttle    = throttle )
