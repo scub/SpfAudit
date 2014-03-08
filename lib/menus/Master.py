@@ -1,13 +1,14 @@
 #!/usr/bin/python
 
 # Stdlib
-from   Queue    import Empty as QueueEmpty
-from   datetime import datetime
-from   time     import sleep
+from   Queue      import Empty as QueueEmpty
+from   datetime   import datetime
+from   time       import sleep
 import curses
 
 # SubMenus
-from   sm_Probe import sm_Probe
+from   sm_Probe   import sm_Probe
+from   sm_Elastic import sm_Elastic
 
 class MainMenu( object ):
 
@@ -30,6 +31,7 @@ class MainMenu( object ):
             'm_opts'    : {
 
                 1 : ( 'dnsProbe',  sm_Probe       ),
+                2 : ( 'esBroker',  sm_Elastic     ),
                 9 : ( 'Exit',      self._cleanup  ),
 
             }
