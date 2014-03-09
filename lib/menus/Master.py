@@ -9,6 +9,7 @@ import curses
 # SubMenus
 from   sm_Probe   import sm_Probe
 from   sm_Elastic import sm_Elastic
+from   sm_Sql     import sm_Sql
 
 class MainMenu( object ):
 
@@ -32,6 +33,7 @@ class MainMenu( object ):
 
                 1 : ( 'dnsProbe',  sm_Probe       ),
                 2 : ( 'esBroker',  sm_Elastic     ),
+                3 : ( 'sqlBroker', sm_Sql         ),
                 9 : ( 'Exit',      self._cleanup  ),
 
             }

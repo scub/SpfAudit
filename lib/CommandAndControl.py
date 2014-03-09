@@ -12,6 +12,7 @@ from geoip2.database      import Reader
 from bots.bases           import LoggedBase
 from bots.dnsBroker       import dnsBroker 
 from bots.esBroker        import esBroker
+from bots.sqlBroker       import sqlBroker
 from lib.types.nameserver import NameServer
 
 class CommandAndControl( LoggedBase ):
@@ -142,7 +143,7 @@ class CommandAndControl( LoggedBase ):
 
         for ( wList, count, SpawnBot, queue, Broker ) in [ 
             ( 'workers',    self.state[ 'workerCount' ], self.addWorker, None,                  None      ),
-            #( 'sqlBrokers', self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'sqout' ], sqlBroker ),
+            ( 'sqlBrokers', self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'sqout' ], sqlBroker ),
             ( 'esBrokers',  self.state[ 'sBrkrCnt'    ], self.addBroker, self.state[ 'eqout'  ], esBroker  ) ]:
 
             lid        = self.state[ 'lastId' ]
