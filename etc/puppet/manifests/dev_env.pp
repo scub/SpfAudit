@@ -48,9 +48,13 @@ class dev_env {
             command => "/usr/bin/pip install geoip2",
             require => Exec[ 'dnspython' ];
 
+        'iptools':
+            command => "/usr/bin/pip install iptools",
+            require => Exec[ 'geoip2' ];
+
         'Elastic-py':
             command => "/usr/bin/pip install elasticsearch",
-            require => Exec[ 'geoip2' ];
+            require => Exec[ 'iptools' ];
             
         'download-geoip-database':
             command => "/usr/bin/curl -Lso /tmp/GeoLite2-City.mmdb.gz http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz", 
