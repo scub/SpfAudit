@@ -30,6 +30,7 @@ db  = dnsBroker( 0, LOG, NameServer(), qin = qin, eqout = eqout, sqout = sqout,
 
 db.background()
 print 'dnsb done'
+eqout.put( 'STOP' )
 import pdb; pdb.set_trace()
 es  = esBroker( 1, LOG, qin = eqout, metaQin = metaQin, metaQout = metaQout, geoip = geoip )
 es.background()
