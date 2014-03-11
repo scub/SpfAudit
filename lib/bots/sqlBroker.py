@@ -127,6 +127,15 @@ class sqlBroker( brokerBase ):
         } )
 
         
+    def _cleanup( self ):
+        """
+
+            Clean up remaining sql connections before
+            process exit. 
+
+        """
+        self.state[ 'sqlCon' ].close()
+
     def process( self, node ):
         """
               Given a Node object, execute a parameterized update-if-not-exists
