@@ -3,6 +3,7 @@
 from Queue import Empty      as QueueEmpty
 from bases import LoggedBase
 from time  import sleep
+import os
 
 class brokerBase( LoggedBase ):
 
@@ -19,6 +20,13 @@ class brokerBase( LoggedBase ):
             'mQin'  : metaQin,
             'alive' : True,
         }
+
+    def _cleanup( self ):
+        """
+            Abstract method, provides cleaning grounds for extending
+            classes
+        """
+        pass
 
     def process( self, node ):
         """
@@ -41,6 +49,8 @@ class brokerBase( LoggedBase ):
         """
         # Bootstrap broker if required
         self.bootstrap()
+
+        self._log( 'background', 'DEBUG', "Started with pid {}".format( os.getpid() ) )
 
         while self.state[ 'alive' ]:
 
@@ -72,4 +82,5 @@ class brokerBase( LoggedBase ):
                 self.state[ 'alive' ] = False
                 break
 
+        self._cleanup()
         self._log( 'background', 'DEBUG', 'Execution Complete.' )
