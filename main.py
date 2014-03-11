@@ -29,8 +29,11 @@ if __name__ == '__main__':
     parser.add_argument( '-w', '--workers', dest = 'wcount',  default = 3,
                          help = "Worker Count" )
 
-    parser.add_argument( '-e', '--eBroker', dest = 'ecount',  default = 2,
+    parser.add_argument( '-e', '--eBroker', dest = 'ecount',  default = 1,
                          help = "Json Broker Count" )
+
+    parser.add_argument( '-s', '--sBroker', dest = 'scount',  default = 1,
+                         help = "SQL Broker Count" )
 
     parser.add_argument( '-g', '--geoip',   dest = 'geoPath', default = '/usr/share/geoip/GeoLite2-City.mmdb',
                          help = "GeoIP Database Path, If available. (MaxMind.mmdb)" )
@@ -44,6 +47,6 @@ if __name__ == '__main__':
         parser.print_help()
         exit( -1 )
 
-    Interactive( CommandAndControl, args.wcount, args.logPath, args.geoPath, targeting )
+    Interactive( CommandAndControl, args.wcount, args.ecount, args.scount, args.logPath, args.geoPath, targeting )
 
     print "Finished Host Results" 
