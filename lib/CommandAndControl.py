@@ -61,6 +61,7 @@ class CommandAndControl( LoggedBase ):
                                                    logPath       = logPath )
         
         self.state = {
+            # Nameserver
             'nameserver'  : NameServer(),
 
             # Worker / Broker Lists 
@@ -121,7 +122,7 @@ class CommandAndControl( LoggedBase ):
                                                   'sqout', 
                                                   'eqout' ] ] )
 
-        #print 'Nameserver statistics'
+        # print 'Nameserver statistics'
         self.state[ 'nameserver' ].stats()
     
     def _newId( self ):
@@ -142,17 +143,17 @@ class CommandAndControl( LoggedBase ):
         """
 
         for ( wList, count, SpawnBot, queue, Broker ) in [ 
-            ( 'workers',    self.state[ 'workerCount' ], self.addWorker, None,                  None      ),
-            ( 'sqlBrokers', self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'sqout' ], sqlBroker ),
+            ( 'workers',    self.state[ 'workerCount' ], self.addWorker, None,                   None      ),
+            ( 'sqlBrokers', self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'sqout'  ], sqlBroker ),
             ( 'esBrokers',  self.state[ 'sBrkrCnt'    ], self.addBroker, self.state[ 'eqout'  ], esBroker  ) ]:
 
             lid        = self.state[ 'lastId' ]
             start, end = lid, count + lid
             for i in range( start, end ):
-                if wList != 'workers':
-                    SpawnBot( self._newId(), Broker, wList, queue ) 
-                else:
+                if wList == 'workers':
                     SpawnBot( self._newId() ) 
+                else:
+                    SpawnBot( self._newId(), Broker, wList, queue ) 
 
 
     def addWorker( self, worker_id ):
@@ -165,7 +166,6 @@ class CommandAndControl( LoggedBase ):
                             nameserver = self.state[ 'nameserver' ], 
                             geoip      = self.state[ 'geoip'      ], 
                             qin        = self.state[ 'qin'        ], 
-                            #qout       = self.state[ 'qout'       ], 
                             sqout      = self.state[ 'sqout'      ],
                             eqout      = self.state[ 'eqout'      ],
                             metaQin    = metaQin, 
@@ -180,13 +180,11 @@ class CommandAndControl( LoggedBase ):
             'mQout'  : metaQout,
         } )
 
-        #self.state[ 'workers' ][-1][ 'proc' ].start()
 
     def addBroker( self, worker_id, Broker, brokerList, qin ):
         """
             Spawn Broker and add to brokers list
         """
-        #import pdb; pdb.set_trace()
         metaQin, metaQout = Queue(), Queue()
 
         broker = Broker( workerId = worker_id, 
@@ -262,14 +260,12 @@ class CommandAndControl( LoggedBase ):
         
         for target in target_generator():
 
-            #self.state[ 'targets' ].append( target )
             self.state[ 'target_count' ] += 1
             self.state[ 'qin' ].put( target )
             
             # Limit our queue size to 100 times our worker count
             # this should reduce our foot print on larger runs
             # considerably
-            
             if self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
                 self._log( 'pushTargets', 'DEBUG', 'Input Queue Throttle Has Been Triggered' )
             
@@ -282,28 +278,3 @@ class CommandAndControl( LoggedBase ):
         self._log( 'pushTargets', 'DEBUG', 
             "Number of targets queued [ {} ] / [ {} ]".format( self.state[ 'qin' ].qsize(), self.state[ 'target_count' ] )
         )
-                                                              
-        
-    def collect( self ):
-        stop_count = 0
-        
-        self._log( 'collect', 'DEBUG', 
-                   'Data Harvest Begins, Input Queue Size [ {} ]'.format( self.state[ 'qin' ].qsize() ) )
-            
-        while not self.state[ 'qin' ].empty():
-            self._log( 'collect', 'DEBUG', 
-                       'Collection paused while probes working [ {} ]'.format( self.state[ 'qin' ].qsize() ) )
-
-            sleep( self.state[ 'qin' ].qsize() )
-        
-        while not self.state[ 'sqout' ].empty():
-            node = self.state[ 'sqout' ].get()
-                        
-            if type( node ) != str:
-                if all( map( lambda x: x is not None, [ node.url, node.a_records, node.mx_records ] ) ):
-                    print node
-            
-        self._log( 'collect', 'DEBUG', 
-            'Data harvest completed successfully! <3'
-        )
-
