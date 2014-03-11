@@ -13,14 +13,25 @@ from   sm_Sql     import sm_Sql
 
 class MainMenu( object ):
 
-    def __init__( self, CommandAndControl = None, workerCount = None, logPath = None, geoipPath = None, targeting = None ): 
+    def __init__( self, 
+                  CommandAndControl = None, 
+                  workerCount       = None,
+                  eBrokerCount      = None,
+                  sBrokerCount      = None,
+                  logPath           = None, 
+                  geoipPath         = None, 
+                  targeting         = None ): 
 
         self.meta = {
 
             # List of Name tuples containing our workers meta
             'startTime' : datetime.now(),
 
-            'BotMaster' : CommandAndControl( workerCount = workerCount, logPath = logPath, geoipPath = geoipPath  ),
+            'BotMaster' : CommandAndControl( workerCount  = workerCount,
+                                             eBrokerCount = eBrokerCount,
+                                             sBrokerCount = sBrokerCount,
+                                             logPath      = logPath,
+                                             geoipPath    = geoipPath  ),
 
             # Curses 
             'screen'    : None,
@@ -147,6 +158,7 @@ class MainMenu( object ):
         self.meta[ 'screen' ].clear()
 
         while data_in != ord( '\n' ):
+            self.meta[ 'BotMaster' ].pollWorkforce()
 
             sleep( 1 )
             self.meta[ 'screen' ].border( 0 )
