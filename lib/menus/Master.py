@@ -109,14 +109,10 @@ class MainMenu( object ):
 
             menu_ret = self.master_menu( menu_name = self.meta[ 'm_opts' ][ option ][ 0 ] )
 
-
-    def _cleanup( self, screen, BotMaster ):
-
-
-        # TESTING ( Flush Output Queues Before Exiting )
+    def _flushQueue( self, queue ):
         stopCount = 0
         cnc       = self.meta[ 'BotMaster' ]
-        Qout      = cnc.state[ 'qout' ]
+        Qout      = cnc.state[ queue ]
 
         while not Qout.empty() and stopCount != cnc.state[ 'workerCount' ]:
             try:
@@ -129,10 +125,13 @@ class MainMenu( object ):
 
             except QueueEmpty as FinishedProcessing:
                 break
-            except KeyboardInterrupt as HurryTheFudgeUp:
+            except KeyboardInterrupt as UncleanExit:
                 break
-        # /TESTING
 
+    def _cleanup( self, screen, BotMaster ):
+
+        # Flush residuals before exiting
+        map( self._flushQueue, [ 'eqout', 'sqout' ] )
 
         BotMaster.cleanupWorkforce()
         curses.nocbreak()
@@ -145,13 +144,12 @@ class MainMenu( object ):
     def master_menu( self, menu_name = "Main" ):
         data_in = None 
         self.meta[ 'screen' ].nodelay( 1 )
+        self.meta[ 'screen' ].clear()
 
         while data_in != ord( '\n' ):
 
             sleep( 1 )
-            self.meta[ 'screen' ].clear()
             self.meta[ 'screen' ].border( 0 )
-
             self.meta[ 'screen' ].addstr( 1, 2, "Menu: {:<8}".format( menu_name ), curses.A_NORMAL )
 
             # Snag Our Positioning
@@ -161,9 +159,14 @@ class MainMenu( object ):
             # Display Runtime
             self.meta[ 'screen' ].addstr( cur - 2, 5, "Run Time", curses.A_NORMAL )
             self.meta[ 'screen' ].addstr( cur - 1, 5, "========", curses.A_NORMAL )
+
+            timeWin, displacement = self.meta[ 'screen' ].subwin( 8, 65, cur, 5 ), 1
+
             for line in self._runtime2block():
-                self.meta[ 'screen' ].addstr( cur, 5, line, curses.A_NORMAL ) #( 2 ) ) 
-                cur += 1
+                timeWin.addstr( displacement, 1, line, curses.A_NORMAL )
+                displacement += 1
+
+            cur += displacement
 
             # Menu Options
             for opt in sorted( self.meta[ 'm_opts' ], key = self.meta[ 'm_opts' ].get ): 
@@ -175,7 +178,7 @@ class MainMenu( object ):
                     self.meta[ 'screen' ].addstr( opt + ( cur + 8 ), 4, "{} - {}".format( opt, self.meta[ 'm_opts' ][ opt ][ 0 ] ), curses.color_pair( 1 ) )
 
 
-            self.meta[ 'screen' ].refresh()
+            timeWin.refresh()
             data_in = self.meta[ 'screen' ].getch()
 
             if data_in == ord( '\n' ):
@@ -185,9 +188,6 @@ class MainMenu( object ):
                 if data_in == ord( '{}'.format( opt ) ):
                     self.meta[ 'pos' ] = opt
                     break
-
-            if data_in != ord( '\n' ):
-                curses.flash()
 
         self.meta[ 'screen' ].keypad( 0 )
         return ord( str( self.meta[ 'pos' ] ) )
