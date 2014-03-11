@@ -53,6 +53,7 @@ class sm_Base( object ):
 
         key_in = screen.getch() 
 
+        self.botMaster.pollWorkforce()
         # Can be more effecient PATCH.PATCH.PATCH 
         for key, signal in self.SIGNALS.iteritems():
             if key_in == ord( key ):
@@ -74,6 +75,8 @@ class sm_Base( object ):
         while all( map( lambda x: key_in != ord( x ), [ 'q', 'Q' ] ) ):
 
             for broker in Brokers:
+
+                if not broker[ 'proc' ].is_alive(): continue
 
                 try:
                     meta = broker[ 'mQout' ].get_nowait()
