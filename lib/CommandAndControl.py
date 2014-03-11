@@ -48,7 +48,8 @@ class CommandAndControl( LoggedBase ):
                   eBrokerCount = 3, 
                   sBrokerCount = 1, 
                   logPath      = 'var/log/gmx_snoop.log', 
-                  geoipPath    = None ):
+                  geoipPath    = None,
+                  throttle     = 100 ):
         """
             Create new CommandAndControl object.
 
@@ -87,8 +88,8 @@ class CommandAndControl( LoggedBase ):
 
             'logPath'     : logPath,
 
-            # QUEUE THROTTLING ( 100 * # Workers )
-            'throttle'    : int( workerCount ) * 100,
+            # QUEUE THROTTLING ( `throttle` * # Workers; Defaults to 100 per worker )
+            'throttle'    : int( workerCount ) * throttle,
             'targets'     : [],
 
             # GeoIP Goodies
@@ -96,6 +97,7 @@ class CommandAndControl( LoggedBase ):
 
             # last used id
             'lastId'      : 0,
+            'exitQueued'  : False,
         }
 
         self._initWorkforce()
@@ -144,8 +146,8 @@ class CommandAndControl( LoggedBase ):
 
         for ( wList, count, SpawnBot, queue, Broker ) in [ 
             ( 'workers',    self.state[ 'workerCount' ], self.addWorker, None,                   None      ),
-            ( 'sqlBrokers', self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'sqout'  ], sqlBroker ),
-            ( 'esBrokers',  self.state[ 'sBrkrCnt'    ], self.addBroker, self.state[ 'eqout'  ], esBroker  ) ]:
+            ( 'sqlBrokers', self.state[ 'sBrkrCnt'    ], self.addBroker, self.state[ 'sqout'  ], sqlBroker ),
+            ( 'esBrokers',  self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'eqout'  ], esBroker  ) ]:
 
             lid        = self.state[ 'lastId' ]
             start, end = lid, count + lid
@@ -233,7 +235,6 @@ class CommandAndControl( LoggedBase ):
                                                        'esBrokers' ] ]:
  
             map( lambda worker: worker[ 'proc' ].start(), workerList )
-
     
     def cleanupWorkforce( self ):
         """
@@ -249,6 +250,27 @@ class CommandAndControl( LoggedBase ):
         map( self._flushQueue, 
              [ self.state[ i ] for i in [ 'qin', 'sqout', 'eqout' ] ] )
 
+
+    def pollWorkforce( self ):
+        """
+
+              Poll workforce to check broker health,
+            if found to be finished with processing, then
+            fire off event to clean up the rest of the brokers.
+
+
+        """
+        if self.state[ 'exitQueued' ]: return
+
+        # Is there any input left to process?
+        if self.state[ 'qin' ].qsize() <= 0:
+            # Are our dns brokers still live?
+            if all( map( lambda worker: False if worker['proc'].is_alive() else True, self.state[ 'workers' ] ) ):
+                # Insert STOP onto queues to stop brokers once complete
+                map( self.state[ 'eqout' ].put, [ "STOP" for i in range( self.state[ 'eBrkrCnt' ] + 1 ) ] )
+                map( self.state[ 'sqout' ].put, [ "STOP" for i in range( self.state[ 'sBrkrCnt' ] + 1 ) ] )
+                self.state[ 'exitQueued' ] = True
+
     def pushTargets( self, target_generator ):
         """
             Using a generator we feed our host information into 
@@ -263,7 +285,7 @@ class CommandAndControl( LoggedBase ):
             self.state[ 'target_count' ] += 1
             self.state[ 'qin' ].put( target )
             
-            # Limit our queue size to 100 times our worker count
+            # Limit our queue size to `throttle` *  worker count
             # this should reduce our foot print on larger runs
             # considerably
             if self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
