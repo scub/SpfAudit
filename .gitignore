@@ -1,5 +1,8 @@
 makefile
 .vagrant
+*.mmdb
+*.tar.xz
+*.txt
 *.log
 *.pyc
 *.swp
@@ -7,4 +10,3 @@ var/audit/lib
 var/audit/etc
 var/audit/var
 lib/menus/sm_Debug.py
-etc/GeoLite2-City.mmdb
