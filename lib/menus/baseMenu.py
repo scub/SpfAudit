@@ -37,33 +37,19 @@ class baseMenu( object ):
         super( baseMenu, self ).__init__()
 
 
-        self.obj= { 
+        self.obj = { 
 
             # Constants 
             'startTime' : datetime.now(),
 
             # Dynamic Information
             'screen'    : None,
+            'subscr'    : None,
             'showTime'  : showTime,
             'opt'       : Option, 
 
         }
 
-        self.conversion = {
-            '0' : [ "000000", "00  00", "00  00", "00  00", "000000" ],
-            '1' : [ " 000  ", "0 00  ", "  00  ", "  00  ", "000000" ],
-            '2' : [ "000000", "0  000", "  000 ", " 000  ", "000000" ],
-            '3' : [ " 0000 ", "00  00", "   00 ", "0   00", " 0000 " ],
-            '4' : [ "00  00", "00  00", "000000", "    00", "    00" ],
-            '5' : [ "000000", "00    ", "000000", "    00", "00000 " ],
-            '6' : [ " 00000", "00    ", "00000 ", "00   0", " 0000 " ],
-            '7' : [ "000000", "00  00", "    00", "    00", "    00" ],
-            '8' : [ "000000", "00  00", "000000", "00  00", "000000" ],
-            '9' : [ "000000", "00  00", "000000", "    00", "000000" ],
-            '/' : [ "    00", "   00 ", "  00  ", " 00   ", "00    " ],
-            ' ' : [ "      ", "      ", "      ", "      ", "      " ],
-            ':' : [ "  000  ", "  000  ", "       ", "  000  ", "  000  " ],
-        }
 
         self.menuOptions = {
             'Exit'   : Option(
@@ -82,32 +68,20 @@ class baseMenu( object ):
         curses.noecho()
         curses.cbreak()
         
-    def _runtime2block( self, screen ):
-        """
-             Given a screen object, convert our runtime to block letters,
-            and display it on the screen.
 
-            @param curses.screen screen
-        """
-        runTime = datetime.now() - self.obj[ 'startTime' ]
-
-        hours, minutes = "{:0>3}".format( runTime.seconds / 3600 ), "{:0>2}".format( ( runTime.seconds / 60 ) % 60 )
-
-        output, displacement = [], 1
-        for ch in "{}:{}:{:0>2}".format( hours, minutes, runTime.seconds % 60 ):
-            output.append( self.conversion[ ch ] )
-
-        for line in zip( *output ):
-            screen.addstr( displacement, 1, " ".join( line ), curses.A_NORMAL )
-            displacement += 1
-
-        screen.refresh()
-
-    def _sm_exit( self, subscr, y_max, x_max, nodeTemplate ):
+    def _sm_exit( self, subscr, y_max, x_max, nodeTemplate, optionTemplate ):
         """
             Stop iteration 
         """
         raise StopIteration 
+
+    def _poll( self ):
+        """
+              Abstract Method allows extending classes
+            to interact with additional screens in the
+            event that self._prepScreens() is overriden.
+        """
+        pass
 
     def _flushQueue( self, queue ):
         """
@@ -145,6 +119,19 @@ class baseMenu( object ):
         curses.nocbreak()
         curses.endwin()
 
+
+    def _prepScreens( self, subscr ):
+        """
+                Prep framed screens returning output
+            screen used between all menus.    
+
+            @param curses.screen subscr
+
+            @ret   curses.screen outputWindow
+        """
+        sy_max, sx_max = subscr.getmaxyx()
+        return subscr.derwin( sy_max - 4, sx_max - 4, 3, 1 )
+
     def _menu( self ):
         """
             Generate Frame and Main Menu  
@@ -153,28 +140,28 @@ class baseMenu( object ):
 
         sy_max, sx_max = subscr.getmaxyx()
 
-        # Sub Windows
-        if self.obj[ 'showTime' ]:
-            timeWin         = subscr.derwin( 8,           sx_max - 9,  3, 5 )
-            outputWin       = subscr.derwin( sy_max - 12, sx_max - 4, 11, 1 ) 
-        else:
-            outputWin       = subscr.derwin( sy_max - 4,  sx_max - 4,  3, 1 )
-
+        outputWin = self._prepScreens( subscr )
         oy_max, ox_max = outputWin.getmaxyx()
-
         outputWin.scrollok( 1 )
+
+        self.obj[ 'subscr' ] = outputWin
 
         while True:
             selection = subscr.getch()
 
             for optName, option in self.menuOptions.iteritems():
                 if selection in option.hotkeys:
-                    # Show runtime if requested
-                    if self.obj[ 'showTime' ]: self._runtime2block( timeWin )
+                    self._poll()
 
-                    output = option.method( subscr, y_max, x_max, None )
+                    optMenu = option.method( subscr, y_max, x_max, None, Option )
 
-                    outputWin.addstr( oy_max - 1, 1, ':'.join( output ), curses.A_NORMAL )
+                    # If instantiation was required 
+                    if type( optMenu ) != tuple:
+                        output  = optMenu.view() 
+                    else:
+                        output  = optMenu 
+
+                    outputWin.addstr( oy_max - 1, 1, ': '.join( output ), curses.A_NORMAL )
                     outputWin.scroll()
                     outputWin.refresh()
                     subscr.refresh()
@@ -214,6 +201,7 @@ class baseMenu( object ):
             charCount += 1
 
         del optList
+
         # Make our changes visible
         screen.refresh()
 
@@ -229,3 +217,29 @@ class baseMenu( object ):
         except StopIteration as ExitCalled:
             self.__del__()
             return
+
+if __name__ == '__main__':
+    def cnc( *args, **kwargs ):
+        """
+            hehe
+        """
+        pass
+
+    def update( subscr, y_max, x_max, nodeTemplate, optionTemplate ):
+        return ( "UPDATE", "Propagated" )
+
+    x = baseMenu( options = {
+            'Update' : Option( 
+                order   = 9,
+                hotkeys = [ ord( 'u' ), ord( 'U' ) ],
+                method  = update,
+                display = [ ["U"], "pdate" ],
+            ), 
+        },
+
+        showTime = True
+    )
+
+    # CommandAndControl = cnc )
+    x.view()
+    del x
