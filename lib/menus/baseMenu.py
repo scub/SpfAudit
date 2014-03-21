@@ -171,6 +171,8 @@ class baseMenu( object ):
                     outputWin.scroll()
                     outputWin.refresh()
                     subscr.refresh()
+
+        return ( 'Menu', 'Exiting' )
                     
     def _frame( self ):
         """
