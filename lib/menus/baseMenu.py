@@ -4,7 +4,10 @@
 from   datetime        import datetime
 from   time            import sleep
 from   collections     import namedtuple
-import curses, traceback
+import curses
+
+
+import traceback
 
 
 Option = namedtuple( "Option", "order hotkeys method display" ) 
@@ -23,9 +26,8 @@ class baseMenu( object ):
 
     """
 
-    def __init__( self, options = dict, showTime = False ):
+    def __init__( self, CommandAndControl = None, options = dict ):
         """
-
             @param CommandAndControl CommandAndControl
             @param INT               workerCount
             @param INT               eBrokerCount
@@ -36,8 +38,8 @@ class baseMenu( object ):
         """
         super( baseMenu, self ).__init__()
 
-
         self.obj = { 
+            'botMaster' : CommandAndControl,
 
             # Constants 
             'startTime' : datetime.now(),
@@ -45,7 +47,6 @@ class baseMenu( object ):
             # Dynamic Information
             'screen'    : None,
             'subscr'    : None,
-            'showTime'  : showTime,
             'opt'       : Option, 
 
         }
@@ -69,7 +70,7 @@ class baseMenu( object ):
         curses.cbreak()
         
 
-    def _sm_exit( self, subscr, y_max, x_max, nodeTemplate, optionTemplate ):
+    def _sm_exit( self, option = None, CommandAndControl = None ): 
         """
             Stop iteration 
         """
@@ -144,7 +145,10 @@ class baseMenu( object ):
         oy_max, ox_max = outputWin.getmaxyx()
         outputWin.scrollok( 1 )
 
+        # Save our subscreen to allow extending
+        # classes to use it.
         self.obj[ 'subscr' ] = outputWin
+        self.obj[ 'size'   ] = ( oy_max, ox_max ) 
 
         while True:
             selection = subscr.getch()
@@ -153,15 +157,27 @@ class baseMenu( object ):
                 if selection in option.hotkeys:
                     self._poll()
 
-                    optMenu = option.method( subscr, y_max, x_max, None, Option )
+                    #outputWin.addstr( oy_max - 1, 1, ': '.join( [ 'DEBUG', str(type( self.obj[ 'botMaster' ] )) ] ), curses.A_NORMAL )
+                    outputWin.scroll()
+
+                    # Do we require initialization?
+                    #if type( option.method ) == type:
+
+                    #    optMenu = option.method( optName, self.obj[ 'botMaster' ] )
+                    #    output  = ': '.join( optMenu.view() )
+
+                    #else:
+                    #    output  = ': '.join( option.method() ) 
+
+                    #option.method( subscr, y_max, x_max, None, Option )
 
                     # If instantiation was required 
                     if type( optMenu ) != tuple:
                         output  = optMenu.view() 
                     else:
                         output  = optMenu 
-
-                    outputWin.addstr( oy_max - 1, 1, ': '.join( output ), curses.A_NORMAL )
+                    
+                    outputWin.addstr( oy_max - 2, 1, output, curses.A_NORMAL )
                     outputWin.scroll()
                     outputWin.refresh()
                     subscr.refresh()
@@ -175,6 +191,10 @@ class baseMenu( object ):
                 @return int      y_max  - Maximum terminal height,
                 @return int      x_max  - Max terminal width )
         """
+        # Give ourselves a fresh template
+        # Helps with submenus
+        self.obj[ 'screen' ].clear()
+
         y_max, x_max = self.obj[ 'screen' ].getmaxyx()
         screen       = self.obj[ 'screen' ].subwin( y_max - 1, x_max - 1, 0, 0 )
         y_max, x_max = screen.getmaxyx() 
@@ -236,8 +256,6 @@ if __name__ == '__main__':
                 display = [ ["U"], "pdate" ],
             ), 
         },
-
-        showTime = True
     )
 
     # CommandAndControl = cnc )
