@@ -70,7 +70,7 @@ class baseMenu( object ):
         curses.cbreak()
         
 
-    def _sm_exit( self, option = None, CommandAndControl = None ): 
+    def _sm_exit( self ):
         """
             Stop iteration 
         """
@@ -161,24 +161,12 @@ class baseMenu( object ):
                     outputWin.scroll()
 
                     # Do we require initialization?
-                    #if type( option.method ) == type:
-
-                    #    optMenu = option.method( optName, self.obj[ 'botMaster' ] )
-                    #    output  = ': '.join( optMenu.view() )
-
-                    #else:
-                    #    output  = ': '.join( option.method() ) 
-
-                    #option.method( subscr, y_max, x_max, None, Option )
-
-                    optMenu = option.method( optName, self.obj[ 'botMaster' ] )
-
-                    # If instantiation was required 
-                    if type( optMenu ) != tuple:
-                        output  = ': '.join( optMenu.view() ) 
+                    if type( option.method ) == type:
+                        optMenu = option.method( optName, self.obj[ 'botMaster' ] )
+                        output  = ': '.join( optMenu.view()  )
                     else:
-                        output  = ': '.join( optMenu ) 
-                    
+                        output  = ': '.join( option.method() ) 
+
                     outputWin.addstr( oy_max - 2, 1, output, curses.A_NORMAL )
                     outputWin.scroll()
                     outputWin.refresh()
