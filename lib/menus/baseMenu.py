@@ -171,11 +171,13 @@ class baseMenu( object ):
 
                     #option.method( subscr, y_max, x_max, None, Option )
 
+                    optMenu = option.method( optName, self.obj[ 'botMaster' ] )
+
                     # If instantiation was required 
                     if type( optMenu ) != tuple:
-                        output  = optMenu.view() 
+                        output  = ': '.join( optMenu.view() ) 
                     else:
-                        output  = optMenu 
+                        output  = ': '.join( optMenu ) 
                     
                     outputWin.addstr( oy_max - 2, 1, output, curses.A_NORMAL )
                     outputWin.scroll()
