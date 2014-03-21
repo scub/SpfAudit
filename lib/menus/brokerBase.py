@@ -95,36 +95,35 @@ class brokerBase( baseMenu ):
                 pass
         return ( option, "Required objects are not present, unable to process request." )
 
-
-    def _signalExit( self, option = None ):
+    def _signalExit( self ):
         """
               Signal All Workers To Turn Off Verbosity
             Flushing meta queues before cleanly exiting
             the submenu.
         """ 
-        return self._signalBots( option, signal = "XOBSRV", data = None )
+        return self._signalBots( option = "EXIT", signal = "XOBSRV", data = None )
 
-    def _signalLast( self, option = None ):
+    def _signalLast( self ):
         """
                Signal all workers to display their last
             processed record.
 
         """ 
-        return self._signalBots( option, signal = "LPROC", data = None )
+        return self._signalBots( option = "LAST", signal = "LPROC", data = None )
 
-    def _signalStatus( self, option = None ):
+    def _signalStatus( self ):
         """
                Signal all workers to display their current
             status, including processed record counts and
             the last processed record.
 
         """    
-        return self._signalBots( option, signal = "ALL", data = None )
+        return self._signalBots( option = "STATUS", signal = "ALL", data = None )
 
-    def _signalVerbose( self, option = None, cnc = None ):
+    def _signalVerbose( self ):
         """
               Signal All workers to turn on verbosity
             records are displayed as they are processed.
 
         """
-        return self._signalBots( option, signal = "VERBOSE", data = None )
+        return self._signalBots( option = "VERBOSE", signal = "VERBOSE", data = None )
