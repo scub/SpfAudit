@@ -26,7 +26,7 @@ class baseMenu( object ):
 
     """
 
-    def __init__( self, CommandAndControl = None, options = dict ):
+    def __init__( self, CommandAndControl = None, options = dict, menuName = None ):
         """
             @param CommandAndControl CommandAndControl
             @param INT               workerCount
@@ -48,6 +48,7 @@ class baseMenu( object ):
             'screen'    : None,
             'subscr'    : None,
             'opt'       : Option, 
+            'menuName'  : menuName,
 
         }
 
@@ -82,7 +83,7 @@ class baseMenu( object ):
             to interact with additional screens in the
             event that self._prepScreens() is overriden.
         """
-        pass
+        return None
 
     def _flushQueue( self, queue ):
         """
@@ -155,15 +156,13 @@ class baseMenu( object ):
 
             for optName, option in self.menuOptions.iteritems():
                 if selection in option.hotkeys:
-                    self._poll()
-
-                    #outputWin.addstr( oy_max - 1, 1, ': '.join( [ 'DEBUG', str(type( self.obj[ 'botMaster' ] )) ] ), curses.A_NORMAL )
-                    outputWin.scroll()
+                    if self._poll() is not None: outputWin.scroll()
 
                     # Do we require initialization?
                     if type( option.method ) == type:
                         optMenu = option.method( optName, self.obj[ 'botMaster' ] )
-                        output  = ': '.join( optMenu.view()  )
+                        output  = ': '.join( [ str( x ) for x in optMenu.view() ] )
+                        subscr = self._drawFrame( subscr )
                     else:
                         output  = ': '.join( option.method() ) 
 
@@ -172,7 +171,10 @@ class baseMenu( object ):
                     outputWin.refresh()
                     subscr.refresh()
 
-        return ( 'Menu', 'Exiting' )
+                    if selection in [ ord( 'x' ), ord( 'X' ) ]:
+                        return ( 'Menu' if self.obj[ 'menuName' ] is None else self.obj[ 'menuName' ], 'Menu Exiting' ) 
+
+        return ( 'Menu' if self.obj[ 'menuName' ] is None else self.obj[ 'menuName' ], 'Menu Exiting' ) 
                     
     def _frame( self ):
         """
@@ -182,6 +184,7 @@ class baseMenu( object ):
                 @return subwin   screen - 'Framed' curses subwin() object,
                 @return int      y_max  - Maximum terminal height,
                 @return int      x_max  - Max terminal width )
+            )
         """
         # Give ourselves a fresh template
         # Helps with submenus
@@ -191,7 +194,23 @@ class baseMenu( object ):
         screen       = self.obj[ 'screen' ].subwin( y_max - 1, x_max - 1, 0, 0 )
         y_max, x_max = screen.getmaxyx() 
 
+        screen = self._drawFrame( screen )
+
+        # Make our changes visible
+        screen.refresh()
+
+        return ( screen, y_max, x_max )
+
+    def _drawFrame( self, screen = None ):
+        """
+              Apply frame and display options to a given
+              screen, returning it when finished
+        """
+        # Obtain Dimensions
+        y_max, x_max = screen.getmaxyx() 
+
         # Frame Window 
+        screen.clear() 
         screen.box()
         screen.hline(  2, 1, curses.ACS_HLINE, x_max - 3 )
 
@@ -214,10 +233,19 @@ class baseMenu( object ):
 
         del optList
 
-        # Make our changes visible
-        screen.refresh()
+        # Rather than refresh here, we push upstream for 
+        # further modification
+        return screen
 
-        return ( screen, y_max, x_max )
+    def _redraw( self ):
+        """
+              Redraw entire menu, call after sub menu
+            has exited to return the master menu to
+            its original state
+        """
+
+        screen = None
+        self._drawFrame( screen )
 
 
     def view( self ):
@@ -225,10 +253,10 @@ class baseMenu( object ):
             Display main menu
         """
         try:
-            self._menu()
+            return self._menu()
         except StopIteration as ExitCalled:
             self.__del__()
-            return
+            return ( 'View', 'Stopping Iteration' )
 
 if __name__ == '__main__':
     def cnc( *args, **kwargs ):
