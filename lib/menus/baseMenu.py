@@ -93,7 +93,7 @@ class baseMenu( object ):
             @param Queue queue - Queue to be flushed
         """
         stopCount = 0
-        cnc       = self.obj[ 'BotMaster' ]
+        cnc       = self.obj[ 'botMaster' ]
         Qout      = cnc.state[ queue ]
 
         while not Qout.empty() and stopCount != cnc.state[ 'workerCount' ]:
@@ -115,6 +115,13 @@ class baseMenu( object ):
                Return terminal to normal operation,
             undoing all changes required for curses
         """
+
+        # Flush queues and stop processing
+        map( self._flushQueue, [ 'eqout', 'sqout' ] )
+        if self.obj[ 'botMaster' ] is not None:
+            self.obj[ 'botMaster' ].cleanupWorkforce()
+
+        # Return shell to normal
         self.obj[ 'screen' ].clear()
         self.obj[ 'screen' ].keypad( 0 )
         curses.echo()
