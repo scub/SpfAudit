@@ -24,6 +24,7 @@ class brokerBase( baseMenu ):
         """
         super( brokerBase, self ).__init__(
             CommandAndControl = CommandAndControl,
+            menuName          = menuName,
             options           = {
                 # Dummy Option To Give Menu Fancy Name
                 'Menu Name'   : Option(
