@@ -1,91 +1,84 @@
 #!/usr/bin/python
 
-from   Queue import Empty as QueueEmpty
-from   time  import sleep
+from   baseMenu import Option
 import curses
+
+import traceback
 
 class sm_Base( object ):
 
-    def __init__( self, screen, botMaster, botList, menuName, menuOptions = None, throttle = 1 ):
-    
+    def __init__( self, y_src = 2, x_src = 1, lines = 7, cols = 17, options = dict, cnc = None ):
+        """
+            @param int    y_src    - Y Axis to start at
+            @param int    x_src    - X Axis to start at
+            @param int    lines    - Number of lines
+            @param int    cols     - Number of columns
+            @param dict() options  - Options list
+        """
+
         super( sm_Base, self ).__init__()
 
-        ( self.screen, 
-          self.botMaster,
-          self.botList,
-          self.menuName,
-          self.throttle   ) = ( screen,
-                                botMaster,
-                                botList,
-                                menuName,
-                                throttle ) 
+        self.inputOptions = dict()
 
-
-        self.menuOptions = "(Q)uit" if menuOptions is None else "{} (Q)uit".format( menuOptions ) 
-
-        self.SIGNALS = {
-            # Stop observing, flushing queues
-            'q' : ( "XOBSRV", None ),
+        self.obj = {
+            'subMenu' : curses.newwin( lines, cols, y_src, x_src ),
+            'cnc'     : cnc,
         }
 
-    def _frame( self, screen ):
-
-        # Pull our terminal size to scale accordingly
-        self.y_max, self.x_max = screen.getmaxyx()
+        self.inputOptions.update( options )
         
-        screen.clear()
+    def _prepOptions( self ):
+        """
+            Setup menu with elements in options list
+        """
+        optList, lineCount = list(), 1
 
-        screen.border( 0 )
-        screen.addstr( 1, 2, "Menu: {:<8}".format( self.menuName ), curses.A_NORMAL )
-        screen.addstr( self.y_max - 1, 2, self.menuOptions, curses.A_NORMAL )
+        for key, opt in self.inputOptions.iteritems():
+            optList.append( ( key, opt.order ) ) 
 
-        screen.refresh()
+        # For every menu option, sorted by order
+        for option, optOrder in sorted( optList, key = lambda tup: tup[ 1 ] ):
 
-        subScreen = screen.subwin( self.y_max - 4, self.x_max - 2, 3, 1 )
-        subScreen.scrollok( 1 )
-
-        # Non blocking getch
-        subScreen.nodelay( 1 )
-
-        return subScreen
-
-    def _poll( self, screen ):
-
-        key_in = screen.getch() 
-
-        self.botMaster.pollWorkforce()
-        # Can be more effecient PATCH.PATCH.PATCH 
-        for key, signal in self.SIGNALS.iteritems():
-            if key_in == ord( key ):
-                if all( map( lambda x: x[ 'proc' ].is_alive(), self.botMaster.state[ self.botList ] ) ):
-                    map( lambda broker: broker[ 'mQin' ].put( signal ), self.botMaster.state[ self.botList ] )
+            # Write it to the screen
+            charCount = 2
+            for section in self.inputOptions[ option ].display:
+                if type( section ) == str:
+                    self.obj[ 'subMenu' ].addstr( lineCount, charCount,      section, curses.A_NORMAL    )
+                    charCount += len( section )
                 else:
-                    screen.addstr( self.y_max - 5, 2, "[!] {} has finished processing.".format( self.menuName ), curses.A_NORMAL )
-                    screen.scroll() 
 
-        return key_in
+                    self.obj[ 'subMenu' ].addstr( lineCount, charCount, section[ 0 ], curses.A_UNDERLINE )
+                    charCount += len( section[ 0 ] )
+        
+            lineCount += 1
+
+        self.obj[ 'subMenu' ].box()
+        self.obj[ 'subMenu' ].refresh()
 
     def view( self ):
+        """
+        """
+        self._prepOptions()
+        selection = ""
 
-        screen  = self._frame( self.screen )
-        Brokers = self.botMaster.state[ self.botList ]
-        key_in  = screen.getch()
+        while selection not in [ ord( 'x' ), ord( 'X' ) ]:
+            selection = self.obj[ 'subMenu' ].getch()
 
-        # Have we been asked to exit?
-        while all( map( lambda x: key_in != ord( x ), [ 'q', 'Q' ] ) ):
+            for optName, option in self.inputOptions.iteritems():
+                if selection in option.hotkeys:
 
-            for broker in Brokers:
+                    #<DEBUG>
+                    with open( 'rawr.log', 'wa+' ) as fd:
 
-                if not broker[ 'proc' ].is_alive(): continue
+                        fd.write( '\t[!] sm_Base.Function -> {}\n'.format( option.method.__name__ ) )
+                        fd.write( '\t\t- Type: {}\r\n'.format( str( type( option.method ) ) ) ) 
+                        for line in traceback.extract_stack()[:-1]:
+                            fd.write( "\t\t{}\r\n".format( ': '.join( [ str(x) for x in line ] ) ) )
+                    #</DEBUG>
 
-                try:
-                    meta = broker[ 'mQout' ].get_nowait()
-                    if "DATA" in meta[ 0 ]:
-                        screen.addstr( self.y_max - 5, 2, "{}".format( meta[1] ), curses.A_NORMAL )
-                        screen.scroll()
-                except QueueEmpty as NoMetaToProcess:
-                    pass
+                    optMenu = option.method( optName, self.obj[ 'cnc' ] )
 
-            sleep( 1 )
+                    if type( optMenu ) == tuple: return optMenu
+                    return optMenu.view()
 
-            key_in = self._poll( screen )
+        return ( "Sub-Menu", "Closed" )
