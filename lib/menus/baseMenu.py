@@ -6,9 +6,7 @@ from   time            import sleep
 from   collections     import namedtuple
 import curses
 
-
 import traceback
-
 
 Option = namedtuple( "Option", "order hotkeys method display" ) 
 class baseMenu( object ):
@@ -141,7 +139,7 @@ class baseMenu( object ):
         sy_max, sx_max = subscr.getmaxyx()
         return subscr.derwin( sy_max - 4, sx_max - 4, 3, 1 )
 
-    def _menu( self ):
+    def _menu( self, blocking = True, nap = .5 ):
         """
             Generate Frame and Main Menu  
         """
@@ -158,12 +156,23 @@ class baseMenu( object ):
         self.obj[ 'subscr' ] = outputWin
         self.obj[ 'size'   ] = ( oy_max, ox_max ) 
 
+        # Non Blocking getch()
+        if not blocking: subscr.nodelay( 1 )
+
         while True:
             selection = subscr.getch()
 
+            # Check for Poll results, sleeping 
+            # if we aren't blocking
+            pollResults = self._poll()
+            if not blocking: sleep( nap )
+
+            if pollResults is not None: 
+                outputWin.addstr( oy_max - 2, 1, pollResults, curses.A_NORMAL )
+                outputWin.scroll()
+
             for optName, option in self.menuOptions.iteritems():
                 if selection in option.hotkeys:
-                    if self._poll() is not None: outputWin.scroll()
 
                     # Do we require initialization?
                     if type( option.method ) == type:
@@ -173,9 +182,7 @@ class baseMenu( object ):
                     else:
                         output  = ': '.join( option.method() ) 
 
-                    outputWin.addstr( oy_max - 2, 1, output, curses.A_NORMAL )
-                    outputWin.scroll()
-                    outputWin.refresh()
+                    self._printScr( output )
                     subscr.refresh()
 
                     if selection in [ ord( 'x' ), ord( 'X' ) ]:
@@ -195,7 +202,7 @@ class baseMenu( object ):
         """
         # Give ourselves a fresh template
         # Helps with submenus
-        self.obj[ 'screen' ].clear()
+
 
         y_max, x_max = self.obj[ 'screen' ].getmaxyx()
         screen       = self.obj[ 'screen' ].subwin( y_max - 1, x_max - 1, 0, 0 )
