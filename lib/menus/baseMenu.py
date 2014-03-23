@@ -251,6 +251,13 @@ class baseMenu( object ):
         # further modification
         return screen
 
+    def _getTime( self ):
+        """
+            Returns the current time in our standard time format
+            @return STRING 
+        """
+        return datetime.today().strftime( "%a %b %y, %H:%M:%S" )
+
     def _redraw( self ):
         """
               Redraw entire menu, call after sub menu
