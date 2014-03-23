@@ -8,12 +8,15 @@ from time                 import sleep
 # 3rd Party Libs (MaxMind Geoip2) pip install geoip2
 from geoip2.database      import Reader
 
-# Custom Libs
+# Custom Bots 
 from bots.bases           import LoggedBase
 from bots.dnsBroker       import dnsBroker 
 from bots.esBroker        import esBroker
 from bots.sqlBroker       import sqlBroker
+
+# Custom Types
 from lib.types.nameserver import NameServer
+from lib.types.node       import Node
 
 class CommandAndControl( LoggedBase ):
     """
@@ -42,7 +45,6 @@ class CommandAndControl( LoggedBase ):
         def collect( self )
 
     """
-    
     def __init__( self, 
                   workerCount  = 3, 
                   eBrokerCount = 3, 
@@ -63,41 +65,42 @@ class CommandAndControl( LoggedBase ):
         
         self.state = {
             # Nameserver
-            'nameserver'  : NameServer(),
+            'nameserver'   : NameServer(),
 
             # Worker / Broker Lists 
-            'esBrokers'   : [],
-            'sqlBrokers'  : [],
-            'workers'     : [],
+            'esBrokers'    : [],
+            'sqlBrokers'   : [],
+            'workers'      : [],
 
             # Worker / Broker Counts 
-            'workerCount' : int( workerCount  ),
-            'eBrkrCnt'    : int( eBrokerCount ),
-            'sBrkrCnt'    : int( sBrokerCount ),
+            'workerCount'  : int( workerCount  ),
+            'eBrkrCnt'     : int( eBrokerCount ),
+            'sBrkrCnt'     : int( sBrokerCount ),
 
             # Worker Input Queue
-            'qin'         : Queue(),
+            'qin'          : Queue(),
             # Output Queue To Be Replaced
-            'qout'        : Queue(),
+            'qout'         : Queue(),
 
             # Worker Sql Broker Queue
-            'sqout'       : Queue(),
+            'sqout'        : Queue(),
 
             # Worker Json Broker Queue
-            'eqout'       : Queue(),
+            'eqout'        : Queue(),
 
-            'logPath'     : logPath,
+            'logPath'      : logPath,
 
             # QUEUE THROTTLING ( `throttle` * # Workers; Defaults to 100 per worker )
-            'throttle'    : int( workerCount ) * throttle,
-            'targets'     : [],
+            'throttle'     : int( workerCount ) * throttle,
+            'targets'      : [],
+            'target_count' : 0,
 
             # GeoIP Goodies
-            'geoip'       : None if geoipPath is None else Reader( geoipPath ),
+            'geoip'        : None if geoipPath is None else Reader( geoipPath ),
 
             # last used id
-            'lastId'      : 0,
-            'exitQueued'  : False,
+            'lastId'       : 0,
+            'exitQueued'   : False,
         }
 
         self._initWorkforce()
@@ -298,5 +301,38 @@ class CommandAndControl( LoggedBase ):
             self.state[ 'qin' ].put( 'STOP' )
         
         self._log( 'pushTargets', 'DEBUG', 
-            "Number of targets queued [ {} ] / [ {} ]".format( self.state[ 'qin' ].qsize(), self.state[ 'target_count' ] )
+            "Number of targets queued [ {} ] / [ {} ]".format( 
+                self.state[ 'qin'          ].qsize(), 
+                self.state[ 'target_count' ] 
+            )
+        )
+
+    def evalGenerator( self, target_generator = None ):
+        """
+            Using a generator we feed our host information into 
+            the processing queue.
+
+            @param str       target_type      - Options include IP/DOMAIN
+            @param generator target_generator
+        """
+        
+        for target in target_generator( Node ):
+
+            self.state[ 'target_count' ] += 1
+            self.state[ 'qin' ].put( target )
+            
+            # Limit our queue size to `throttle` *  worker count
+            # this should reduce our foot print on larger runs
+            # considerably
+            if self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
+                self._log( 'pushTargets', 'DEBUG', 'Input Queue Throttle Has Been Triggered' )
+            
+                while self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
+                    sleep( 1 )
+            
+        self._log( 'pushTargets', 'DEBUG', 
+            "Finished queuing target nodes [ {} ] / [ {} ]".format( 
+                self.state[ 'qin' ].qsize(), 
+                self.state[ 'target_count' ] 
+            )
         )

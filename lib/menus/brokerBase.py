@@ -3,6 +3,7 @@
 import curses, traceback
 from   datetime import datetime
 from   time     import sleep
+from   Queue    import Empty as QueueEmpty
 
 from   baseMenu import baseMenu, Option
 
@@ -39,11 +40,11 @@ class brokerBase( baseMenu ):
                     method  = self._signalVerbose, 
                     display = [ ["V"], "erbose" ],
                 ),
-                'Last Record' : Option(
+                'Last'        : Option(
                     order   = 2,
                     hotkeys = [ ord( 'l' ), ord( 'L' ) ],
                     method  = self._signalLast,
-                    display = [ ["L"], "ast Record" ],
+                    display = [ ["L"], "ast" ],
                 ),
                 'Status'      : Option(
                     order   = 3,
@@ -68,12 +69,6 @@ class brokerBase( baseMenu ):
         """
         pass
 
-    def _getTime( self ):
-        """
-            Returns the current time in our standard time format
-            @return STRING 
-        """
-        return datetime.today().strftime( "%a %b %y, %H:%M:%S" )
 
     def _signalBots( self, option = None, signal = None, data = None ):
         """
@@ -85,6 +80,7 @@ class brokerBase( baseMenu ):
         if all( map( lambda x: x is not None, 
                      [ option, signal, self.obj[ 'botMaster' ], self.botList ] ) ):
 
+            self._printScr( "brokerBase._signalBots: processing {}".format( signal ) )
             # Snag the list of bots
             brokers = self.obj[ 'botMaster' ].state[ self.botList ] 
 
@@ -128,3 +124,34 @@ class brokerBase( baseMenu ):
 
         """
         return self._signalBots( option = "VERBOSE", signal = "VERBOSE", data = None )
+
+    def _poll( self ):
+        """
+            Poll broker base for queued requests returning
+        """
+        for broker in self.obj[ 'botMaster' ].state[ self.botList ]:
+            if not broker[ 'proc' ].is_alive(): continue
+
+            try:
+                meta = broker[ 'mQout' ].get_nowait()
+                if "DATA" in meta[ 0 ]:
+                    self._printScr( meta[ 1 ] ) 
+                    #self._printScr( "{} - {}".format( meta[ 0 ], meta[ 1 ] ) )
+                del meta
+            except QueueEmpty as NoRequestsToProcess:
+                continue
+
+        return None
+
+
+    def view( self ):
+        """
+               Overriding baseMenu.view() to make sure we aren't
+            blocking when getch() is called, this helps brokers
+            get 'seamless' access to output windows. 
+        """
+        try:
+            return self._menu( blocking = False, nap = .25 )
+        except StopIteration as ExitQueued:
+            self.__del()
+            return ( 'Broker', 'Stopping Iteration' )
