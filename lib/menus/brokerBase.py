@@ -69,7 +69,6 @@ class brokerBase( baseMenu ):
         """
         pass
 
-
     def _signalBots( self, option = None, signal = None, data = None ):
         """
             @param STRING signal - Signal to propagate through to bots
@@ -136,13 +135,11 @@ class brokerBase( baseMenu ):
                 meta = broker[ 'mQout' ].get_nowait()
                 if "DATA" in meta[ 0 ]:
                     self._printScr( meta[ 1 ] ) 
-                    #self._printScr( "{} - {}".format( meta[ 0 ], meta[ 1 ] ) )
                 del meta
             except QueueEmpty as NoRequestsToProcess:
                 continue
 
         return None
-
 
     def view( self ):
         """
@@ -155,3 +152,4 @@ class brokerBase( baseMenu ):
         except StopIteration as ExitQueued:
             self.__del()
             return ( 'Broker', 'Stopping Iteration' )
+
