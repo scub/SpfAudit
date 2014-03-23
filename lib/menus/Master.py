@@ -1,55 +1,81 @@
 #!/usr/bin/python
 
-# Stdlib
-from   Queue      import Empty as QueueEmpty
-from   datetime   import datetime
-from   time       import sleep
-import curses
+import curses, traceback
+from   datetime import datetime
+from   time     import sleep
 
-# SubMenus
-from   sm_Probe   import sm_Probe
-from   sm_Elastic import sm_Elastic
-from   sm_Sql     import sm_Sql
+# Externals
+from   baseMenu import baseMenu, Option
+from   sm_Input import sm_Input
+from   sm_Bots  import sm_Bots
 
-class MainMenu( object ):
+class Master( baseMenu ):
 
     def __init__( self, 
                   CommandAndControl = None, 
                   workerCount       = None,
                   eBrokerCount      = None,
                   sBrokerCount      = None,
-                  logPath           = None, 
-                  geoipPath         = None, 
-                  targeting         = None ): 
+                  logPath           = None,
+                  geoipPath         = None,
+                  targeting         = None ):
 
-        self.meta = {
+        
+        cnc = CommandAndControl( 
+            workerCount  = workerCount,
+            eBrokerCount = eBrokerCount,
+            sBrokerCount = sBrokerCount,
+            logPath      = logPath,
+            geoipPath    = geoipPath
+        )
 
-            # List of Name tuples containing our workers meta
-            'startTime' : datetime.now(),
+        super( Master, self ).__init__( 
+            CommandAndControl = cnc,
+            options           = {
+                'Input'  : Option( 
+                    order   = 0,
+                    hotkeys = [ ord( 'i' ), ord( 'I' ) ],
+                    method  = sm_Input,
+                    display = [ ["I"], "nput" ],
+                ),
 
-            'BotMaster' : CommandAndControl( workerCount  = workerCount,
-                                             eBrokerCount = eBrokerCount,
-                                             sBrokerCount = sBrokerCount,
-                                             logPath      = logPath,
-                                             geoipPath    = geoipPath  ),
+                'Bots'   : Option(
+                    order   = 1,
+                    hotkeys = [ ord( 'b' ), ord( 'B' ) ],
+                    method  = sm_Bots,
+                    display = [ ["B"], "ots" ],
+                ),
 
-            # Curses 
-            'screen'    : None,
-            'subscr'    : None,
-            'verbose'   : False, 
-            'pos'       : 1,
+                'Update' : Option(
+                    order   = 2,
+                    hotkeys = [ ord( 'u' ), ord( 'U' ) ],
+                    method  = lambda b = None: ( "UPDATE", "Propagated {}".format( self._getTime() ) ),
+                    display = [ ["U"], "pdate" ],
+                ),
 
-            # SubMenus And Statuses
-            'm_opts'    : {
-
-                1 : ( 'dnsProbe',  sm_Probe       ),
-                2 : ( 'esBroker',  sm_Elastic     ),
-                3 : ( 'sqlBroker', sm_Sql         ),
-                9 : ( 'Exit',      self._cleanup  ),
-
+                # DEBUG
+                'Poll'   : Option(
+                    order   = 3,
+                    hotkeys = [ ord( 'p' ), ord( 'P' ) ],
+                    method  = self._pollCnC,
+                    display = [ ["P"], "oll" ],
+                ),
+                #'Pause/Play'  : Option(
+                #    order   = 4,
+                #    hotkeys = [ ord( 'p' ), ord( 'P' ) ],
+                #    method  = self._pauseCnC, 
+                #    display = [ "P", ["a"], "use/Pl", ["a"], "y" ],
+                #),
+                'Kill'   : Option(
+                    order   = 5,
+                    hotkeys = [ ord( 'k' ), ord( 'K' ) ],
+                    method  = self._killCnC,
+                    display = [ ["K"], "ill" ],
+                ),
             }
-        }
+        )
 
+        # Time Conversions
         self.conversion = {
             '0' : [ "000000", "00  00", "00  00", "00  00", "000000" ],
             '1' : [ " 000  ", "0 00  ", "  00  ", "  00  ", "000000" ],
@@ -66,140 +92,90 @@ class MainMenu( object ):
             ':' : [ "  000  ", "  000  ", "       ", "  000  ", "  000  " ],
         }
 
-        # Push Targets To Probes
-        self.meta[ 'BotMaster' ].pushTargets( targeting )
-        #raise NotImplemented
+        # Spin up our bots
+        cnc.powerWorkforce()
+        
+        # Display the main menu
+        self.view()
 
-        self.meta[ 'BotMaster' ].powerWorkforce()
+    def _killCnC( self ):
+        cnc = self.obj[ 'botMaster' ]
+        for i in range( cnc.state[ 'workerCount' ] ):
+            cnc.state[ 'qin' ].put( "STOP" )
 
-        # Setup default color-scheme and enable keypad input
-        self.meta[ 'screen' ] = curses.initscr()
-        curses.start_color()
-        curses.noecho()
-        #curses.nocbreak()
-        self.meta[ 'screen' ].keypad( 1 )
-        curses.init_pair( 1, curses.COLOR_YELLOW, curses.COLOR_BLACK )
-        curses.init_pair( 2, curses.COLOR_GREEN,  curses.COLOR_GREEN )
+        # Allow workers to stop 
+        # processing and flush queues
+        sleep( 1 ) 
+        cnc.pollWorkforce() 
+        sleep( 1 ) 
 
-        self.main()
+        return self._pollCnC( 'Kill Engaged' ) 
 
-    def _runtime2block( self ):
+    def _pauseCnC( self ):
+        return ( "CnC", "Pausing {}".format( self._getTime() ) )
 
-        runTime = datetime.now() - self.meta[ 'startTime' ]
+    def _pollCnC( self, pollInitiator = "Poll" ):
+        cnc, results = self.obj[ 'botMaster' ], list()
+
+        # Target Count
+        results.append( 'Targets [ {} ];'.format( cnc.state[ 'target_count' ] ) )
+
+        # Worker State 
+        for workerList in [ 'esBrokers', 'sqlBrokers', 'workers' ]:
+            results.append( ' -> '.join(
+                [ workerList, 
+                  "[{}];".format(
+                    "Alive" if all( map( lambda bot: bot[ 'proc' ].is_alive(), cnc.state[ workerList ] ) ) else "Dead" 
+                  )
+                ] )
+            )
+
+        return ( pollInitiator, ' '.join( results ) )
+
+    def _runtime2block( self, screen ):
+        """
+             Given a screen object, convert our runtime to block letters,
+            and display it on the screen.
+
+            @param curses.screen screen
+        """
+        runTime = datetime.now() - self.obj[ 'startTime' ]
 
         hours, minutes = "{:0>3}".format( runTime.seconds / 3600 ), "{:0>2}".format( ( runTime.seconds / 60 ) % 60 )
 
-        output = []
+        output, displacement = [], 1
         for ch in "{}:{}:{:0>2}".format( hours, minutes, runTime.seconds % 60 ):
             output.append( self.conversion[ ch ] )
 
-        output_buf = zip( *output )
-        del output[:] 
+        for line in zip( *output ):
+            screen.addstr( displacement, 1, " ".join( line ), curses.A_NORMAL )
+            displacement += 1
 
-        for outputLine in output_buf:
-            output.append( " ".join( outputLine ) )
+        screen.refresh()
 
-        return output 
+    def _prepScreens( self, subscr ):
+        sy_max, sx_max = subscr.getmaxyx()
 
-    def main( self ):
+        self.timeWin = subscr.derwin(           8, sx_max - 9,  3, 5 )
+        return         subscr.derwin( sy_max - 12, sx_max - 4, 11, 1 ) 
 
-        menu_ret = self.master_menu()
+    def _poll( self ):
+        """
+            Return None To An Unneeded Scroll 
+        """
+        self._runtime2block( self.timeWin )
+        return None 
 
-        while True:
-            
-            option = menu_ret - 48
+    def sm_Bots( self, subscr, y_max, x_max, nodeTemplate, optionTemplate ):
+        return ( 'bots','rawr' ) 
 
-            if option in self.meta[ 'm_opts' ].keys():
+if __name__ == '__main__':
+    def cnc( *args, **kwargs ):
+        """
+            hehe
+        """
+        pass
 
-                try:
-
-                    self.meta[ 'm_opts' ][ option ][ 1 ]( self.meta[ 'screen' ], self.meta[ 'BotMaster' ] )
-
-                except StopIteration as SignaledToExit: 
-                    break
-
-            menu_ret = self.master_menu( menu_name = self.meta[ 'm_opts' ][ option ][ 0 ] )
-
-    def _flushQueue( self, queue ):
-        stopCount = 0
-        cnc       = self.meta[ 'BotMaster' ]
-        Qout      = cnc.state[ queue ]
-
-        while not Qout.empty() and stopCount != cnc.state[ 'workerCount' ]:
-            try:
-                HostData = Qout.get()
-                if "STOP" not in HostData:
-                    cnc._log( 'QueuedOutput', "DEBUG", HostData )
-                else:
-                    cnc._log( 'QueuedOutput', "DEBUG", "STOP Detected, Probe Shutdown Successful" )
-                    stopCount += 1
-
-            except QueueEmpty as FinishedProcessing:
-                break
-            except KeyboardInterrupt as UncleanExit:
-                break
-
-    def _cleanup( self, screen, BotMaster ):
-
-        # Flush residuals before exiting
-        map( self._flushQueue, [ 'eqout', 'sqout' ] )
-
-        BotMaster.cleanupWorkforce()
-        curses.nocbreak()
-        curses.echo()
-        curses.endwin()
-        screen.keypad( 0 )
-        raise StopIteration
-
-
-    def master_menu( self, menu_name = "Main" ):
-        data_in = None 
-        self.meta[ 'screen' ].nodelay( 1 )
-        self.meta[ 'screen' ].clear()
-
-        while data_in != ord( '\n' ):
-            self.meta[ 'BotMaster' ].pollWorkforce()
-
-            sleep( 1 )
-            self.meta[ 'screen' ].border( 0 )
-            self.meta[ 'screen' ].addstr( 1, 2, "Menu: {:<8}".format( menu_name ), curses.A_NORMAL )
-
-            # Snag Our Positioning
-            y_max, x_max = self.meta[ 'screen' ].getmaxyx()
-            cur = ( y_max / 2 ) - 3 
-
-            # Display Runtime
-            self.meta[ 'screen' ].addstr( cur - 2, 5, "Run Time", curses.A_NORMAL )
-            self.meta[ 'screen' ].addstr( cur - 1, 5, "========", curses.A_NORMAL )
-
-            timeWin, displacement = self.meta[ 'screen' ].subwin( 8, 65, cur, 5 ), 1
-
-            for line in self._runtime2block():
-                timeWin.addstr( displacement, 1, line, curses.A_NORMAL )
-                displacement += 1
-
-            cur += displacement
-
-            # Menu Options
-            for opt in sorted( self.meta[ 'm_opts' ], key = self.meta[ 'm_opts' ].get ): 
-
-                # Are we hilighted? 
-                if self.meta[ 'pos' ] != opt:
-                    self.meta[ 'screen' ].addstr( opt + ( cur + 8 ), 4, "{} - {}".format( opt, self.meta[ 'm_opts' ][ opt ][ 0 ] ), curses.A_NORMAL )
-                else:
-                    self.meta[ 'screen' ].addstr( opt + ( cur + 8 ), 4, "{} - {}".format( opt, self.meta[ 'm_opts' ][ opt ][ 0 ] ), curses.color_pair( 1 ) )
-
-
-            timeWin.refresh()
-            data_in = self.meta[ 'screen' ].getch()
-
-            if data_in == ord( '\n' ):
-                break
-
-            for opt in self.meta[ 'm_opts' ].keys():
-                if data_in == ord( '{}'.format( opt ) ):
-                    self.meta[ 'pos' ] = opt
-                    break
-
-        self.meta[ 'screen' ].keypad( 0 )
-        return ord( str( self.meta[ 'pos' ] ) )
+    x = master()
+    x.view()
+    del x 
