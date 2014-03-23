@@ -97,6 +97,12 @@ class LoggedBase( object ):
             datefmt  = '%d-%m-%Y %H:%M:%S' 
         )
 
+        # Minimize elasticsearch/urllib3 spam 
+        for spammers in [ 'elasticsearch', 'elasticsearch.trace', 'urllib3.connectionpool' ]:
+            logging.getLogger( spammers ).setLevel( 
+                logging.CRITICAL
+            )
+
     def _log( self, handler, log_level, message ):
         """
              Emit message to handler, using appropriate identifier for bot purpose.
