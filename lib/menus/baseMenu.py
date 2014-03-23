@@ -251,6 +251,21 @@ class baseMenu( object ):
         # further modification
         return screen
 
+    def _printScr( self, data = None ):
+        """
+            Print given data to bottom of output screen, scrolling
+            and refreshing when finished.
+        """
+        if data is not None:
+            if type( data ) in [ list, tuple ]:
+                for line in data:
+                    self.obj[ 'subscr' ].addstr( self.obj[ 'size' ][ 0 ] - 2, 1, str( line ), curses.A_NORMAL )
+                    self.obj[ 'subscr' ].scroll()
+            else:
+                self.obj[ 'subscr' ].addstr( self.obj[ 'size' ][ 0 ] - 2, 1, str( data ), curses.A_NORMAL )
+                self.obj[ 'subscr' ].scroll()
+            self.obj[ 'subscr' ].refresh()
+
     def _getTime( self ):
         """
             Returns the current time in our standard time format
