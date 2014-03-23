@@ -5,7 +5,7 @@ from argparse              import ArgumentParser
 
 # External dependencies
 from lib.CommandAndControl import CommandAndControl
-from lib.menus.Master      import MainMenu as Interactive
+from lib.menus.Master      import Master as Interactive
 from lib.types.node        import Node
 
 
