@@ -30,8 +30,6 @@ class LoggedBase( object ):
 
         super( LoggedBase, self ).__init__()
 
-        import logging
-
         self.meta = {
             # Log Path
             'logPath' : logPath,
@@ -54,27 +52,29 @@ class LoggedBase( object ):
             # Bot Purpose
             'purpose'  : workerPurpose,
 
+            # Last Record Number Procesed
+            'lrcnt'    : 0,
         }
 
-        # Stats Used By Menu System
+        # Stats Fed By Menu System
         self.stats = {
             # All Bot Statistics
-            'ALL'     : lambda x: "[{}-{}] Total Records Processed [ {} ] Last Processed [ {} ]".format( self.meta[ 'purpose' ],
-                                                                                                         self.meta[ 'id'      ],
-                                                                                                         self.meta[ 'rcnt'    ],
-                                                                                                         self.meta[ 'lrcd'    ] ),
+            'ALL'     : lambda x: "[{}-{}] Total Records Processed [ {} ] Last Processed [ {} ]".format( 
+                self.meta[ 'purpose' ],
+                self.meta[ 'id'      ],
+                self.meta[ 'rcnt'    ],                                                                                         
+                self.meta[ 'lrcd'    ] 
+            ),
 
             # Last Processed Record
-            'LPROC'   : lambda x: "[{}-{}] Last Processed Record [ {} ]".format( self.meta[ 'purpose' ],
-                                                                                 self.meta[ 'id'      ],
-                                                                                 self.meta[ 'lrcd'    ] ),
-
+            'LPROC'   : lambda x: "[{}-{}] Last Processed Record [ {} ]".format( 
+                self.meta[ 'purpose' ],                                                                 
+                self.meta[ 'id'      ],
+                self.meta[ 'lrcd'    ] 
+            ),
 
             # Incremental Updates
-            'INC'     : lambda x: "[{}-{}]: {}) {}".format( self.meta[ 'purpose' ],
-                                                            self.meta[ 'id'      ],
-                                                            self.meta[ 'rcnt'    ],
-                                                            self.meta[ 'lrcd'    ] ),
+            'INC'     : self._displayIncremental,
 
             # Trigger Verbosity
             'VERBOSE' : self._setVerbose, 
@@ -89,12 +89,13 @@ class LoggedBase( object ):
             for key, value in kwargs.iteritems():
                 self.meta[ key ] = value
 
-        # Logging Facilities For All Processes
-        logging.basicConfig( format   = '%(asctime)s %(levelname)s [%(name)s]: %(message)s',
-                             level    = logging.NOTSET,
-                             filename = self.meta[ 'logPath' ], 
-                             datefmt  = '%d-%m-%Y %H:%M:%S' )
-
+        # Centralize Logging Facilities For All Processes
+        logging.basicConfig( 
+            format   = '%(asctime)s %(levelname)s [%(name)s]: %(message)s',
+            level    = logging.NOTSET,
+            filename = self.meta[ 'logPath' ], 
+            datefmt  = '%d-%m-%Y %H:%M:%S' 
+        )
 
     def _log( self, handler, log_level, message ):
         """
@@ -132,16 +133,41 @@ class LoggedBase( object ):
 
         """
         if self.meta[ 'verbose' ]:
-            metaQout.put( ( "DATA", self.stats[ "INC" ]( None ) ) )
+            self._displayIncremental( metaQout ) 
 
         try:
             query = metaQin.get_nowait()
 
             if self.stats.has_key( query[ 0 ] ):
-                metaQout.put( ( "DATA", self.stats[ query[ 0 ] ]( query[ 1 ] ) ) )
+                metaQout.put( self.stats[ query[ 0 ] ]( query[ 1 ] ) )
 
         except QueueEmpty as NoMetaRequests:
             pass
+
+    def _displayIncremental( self, metaQout ):
+        """
+              Display records inrementally, performing
+            minor sanity checks to make sure we aren't
+            displaying the same record again; Added
+            Stipulation of turning off verbosity
+            
+        """
+        output = [ "[{}-{}]:".format( 
+            self.meta[ 'purpose' ], self.meta[ 'id' ]
+        ) ]
+
+        if self.meta[ 'lrcnt' ] != self.meta[ 'rcnt' ]:
+            self.meta[ 'lrcnt' ] = self.meta[ 'rcnt' ]
+
+            output.append( "{}) {}".format( 
+                self.meta[ 'rcnt'    ],
+                self.meta[ 'lrcd'    ] ) 
+            )
+        else:
+            output.append( "No records to process, turning off verbosity." )
+            self._setVerbose( None )
+
+        metaQout.put( ( "DATA", ' '.join( output ) ) ) 
 
     def _setVerbose( self, args, **kwargs ):
         """
