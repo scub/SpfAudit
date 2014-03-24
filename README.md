@@ -72,3 +72,17 @@ Changes To Be Implemented
 
 Example Run State
 -----------------
+- Main Menu
+<img src='http://i.imgur.com/pAhQO1i.jpg'/>
+
+- Accepting Input
+<img src='http://i.imgur.com/sw8aa9p.jpg'/>
+
+- Puppet Run
+<img src='http://i.imgur.com/gzTneUk.jpg'/>
+
+- Broker Menus
+<img src='http://i.imgur.com/bXfvkIX.jpg'/>
+
+- Kibana/Nginx Stats Tracking
+<img src='http://i.imgur.com/4z5o09F.jpg'/>
