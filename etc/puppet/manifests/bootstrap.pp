@@ -57,6 +57,7 @@ class bootstrap {
 
         'Flush Stale Repo Cache':
             command => '/usr/bin/apt-get update && /usr/bin/apt-get upgrade -y',
+            timeout => 1200,
             require => Exec[ 'Puppetlabs-Postgresql' ];
 
         'Update Guest Utils':
