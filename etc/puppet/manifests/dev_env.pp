@@ -35,6 +35,9 @@ class dev_env {
             name    => 'python-pip',
             require => Package[ 'SETUPTOOLS' ];
 
+        'PYLZMA':
+            name    => 'python-lzma',
+            require => Package[ 'PIP' ];
     }
 
     # Snatch External Libs and Geoip Database
@@ -42,7 +45,7 @@ class dev_env {
 
         'dnspython':
             command => "/usr/bin/pip install dnspython",
-            require => Package[ 'PIP' ]; 
+            require => Package[ 'PYLZMA' ]; 
 
         'geoip2':
             command => "/usr/bin/pip install geoip2",
