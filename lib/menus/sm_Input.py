@@ -8,6 +8,7 @@ from   baseMenu import Option
 from   sm_Base  import sm_Base
 
 # Py Natives
+from   lzma     import LZMAFile
 import curses
 
 class sm_Input( sm_Base ):
@@ -55,6 +56,7 @@ class sm_Input( sm_Base ):
         self.obj.update( { 'calls' : {
             'CIDR Block' : self.GenerateCIDR,
             'Single IP'  : self.GenerateIP, 
+            'File'       : self.GenerateFile,
         } } )
 
     def GenerateCIDR( self, nodeTemplate ):
@@ -71,10 +73,14 @@ class sm_Input( sm_Base ):
     # AS CIDR NOTATION IS ACCEPTED, FILES SHOULD 
     # ONLY BE USED TO FIRE THROUGH DOMAINS
     def GenerateFile( self, nodeTemplate ):
-        pass
+        with open( self.process, 'r' ) as fd:
+            fd.readline()
+
+            for line in fd.readlines():
+                yield nodeTemplate( url = line.strip() )
 
     def GenerateIP(   self, nodeTemplate ):
-        for ip in [ self.process, ]:
+        for ip in [ self.process ]:
             yield ip
     
     def obtainInput( self, option, cnc ):
