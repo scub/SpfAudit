@@ -7,7 +7,7 @@ from   Queue    import Empty as QueueEmpty
 
 from   baseMenu import baseMenu, Option
 
-class brokerBase( baseMenu ):
+class sm_brokerBase( baseMenu ):
 
     def __init__( self, CommandAndControl = None, botList = None, menuName = 'Base' ):
         """
@@ -23,7 +23,7 @@ class brokerBase( baseMenu ):
         @param String            menuName          - We give the menu an identifying name
                                                      through the use of this variable.
         """
-        super( brokerBase, self ).__init__(
+        super( sm_brokerBase, self ).__init__(
             CommandAndControl = CommandAndControl,
             menuName          = menuName,
             options           = {
@@ -79,7 +79,6 @@ class brokerBase( baseMenu ):
         if all( map( lambda x: x is not None, 
                      [ option, signal, self.obj[ 'botMaster' ], self.botList ] ) ):
 
-            self._printScr( "brokerBase._signalBots: processing {}".format( signal ) )
             # Snag the list of bots
             brokers = self.obj[ 'botMaster' ].state[ self.botList ] 
 

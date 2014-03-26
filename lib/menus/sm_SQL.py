@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from brokerBase import brokerBase
+from sm_brokerBase import sm_brokerBase
 
-class sm_SQL( brokerBase ):
+class sm_SQL( sm_brokerBase ):
 
     def __init__( self, option = None, CommandAndControl = None ):
 
