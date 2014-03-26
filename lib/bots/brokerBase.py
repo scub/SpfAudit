@@ -7,7 +7,26 @@ import os
 
 class brokerBase( LoggedBase ):
 
-    def __init__( self, workerId = None, workerPurpose = None, logPath = None, qin = None, metaQin = None, metaQout = None ):
+    def __init__( self, 
+                  workerId      = None, 
+                  workerPurpose = None, 
+                  logPath       = None, 
+                  qin           = None, 
+                  metaQin       = None, 
+                  metaQout      = None ):
+        """
+               Broker base class provides meta and record processing
+            methods, while exposing various methods to help bootstrap
+            and define the processing of a specific record.
+
+            @param int      workerId       - Bot GUID (Usually Generated Programatically)
+            @param string   workerPurpose  - Identify Bot Type, Used when queried for run statistics
+            @param string   logPath        - Fully qualified path for events to be cataloged
+            @param Queue    qin            - Input queue, Node objects are fed through and processed
+            @param Queue    metaQin        - I/O Queue Exposes interface to query bot for run statistics
+            @param Queue    metaQout       - I/O Queue Exposes interface to retrieve queried statistics
+
+        """
 
         super( brokerBase, self ).__init__( workerId      = workerId,
                                             workerPurpose = workerPurpose,

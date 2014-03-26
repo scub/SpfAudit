@@ -73,7 +73,7 @@ class dnsBroker( brokerBase ):
     def spam( self, node ):
         """
             Spam Respective Brokers With Metrics Harvested from
-            Host objects for further perusal.
+            Host objects for further processing and aggregation.
 
             @param  Host host - Host() object containing host details to be logged
 
@@ -124,7 +124,11 @@ class dnsBroker( brokerBase ):
 
 
     def process( self, node ):
-
+        """
+              Given a node object, collect all dns records
+            for processing, then fire them off to be processed
+            by sql/json brokers.
+        """
         host = self.build_host( node ) 
         del node
         if host is not None:

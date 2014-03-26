@@ -157,6 +157,7 @@ class LoggedBase( object ):
             displaying the same record again; Added
             Stipulation of turning off verbosity
             
+            @param Queue metaQout   - Output Queue For Bot I/O
         """
         output = [ "[{}-{}]:".format( 
             self.meta[ 'purpose' ], self.meta[ 'id' ]
@@ -178,6 +179,9 @@ class LoggedBase( object ):
     def _setVerbose( self, args, **kwargs ):
         """
             Trigger Verbosity Setting 
+
+            @param list args    - Templated Function Provides Buffer For Arbitrary Arguments
+            @param dict kwargs  - Templated Function Provides Hashtable For Arbitrary Arguments
         """
         self.meta[ 'verbose' ] = True if self.meta[ 'verbose' ] is False else False
         return "[{}-{}]: Set Verbosity To {}.".format( self.meta[ 'purpose' ], self.meta[ 'id' ], self.meta[ 'verbose' ] )
@@ -185,6 +189,9 @@ class LoggedBase( object ):
     def _flushVerbosity( self, args, **kwargs ):
         """
             Flush Verbose state, called by XOBSRV
+
+            @param list args    - Templated Function Provides Buffer For Arbitrary Arguments
+            @param dict kwargs  - Templated Function Provides Hashtable For Arbitrary Arguments
         """
         self.meta[ 'verbose' ] = False
         return "[{}-{}]: Flushed Observable State.".format( self.meta[ 'purpose' ], self.meta[ 'id' ] )
