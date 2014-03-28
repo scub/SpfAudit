@@ -60,12 +60,12 @@ class Master( baseMenu ):
                     method  = self._pollCnC,
                     display = [ ["P"], "oll" ],
                 ),
-                #'Pause/Play'  : Option(
-                #    order   = 4,
-                #    hotkeys = [ ord( 'p' ), ord( 'P' ) ],
-                #    method  = self._pauseCnC, 
-                #    display = [ "P", ["a"], "use/Pl", ["a"], "y" ],
-                #),
+                'Pause/Play'  : Option(
+                    order   = 4,
+                    hotkeys = [ ord( 'a' ), ord( 'A' ) ],
+                    method  = self._pauseCnC, 
+                    display = [ "P", ["a"], "use/Pl", ["a"], "y" ],
+                ),
                 'Kill'   : Option(
                     order   = 5,
                     hotkeys = [ ord( 'k' ), ord( 'K' ) ],
@@ -112,7 +112,7 @@ class Master( baseMenu ):
         return self._pollCnC( 'Kill Engaged' ) 
 
     def _pauseCnC( self ):
-        return ( "CnC", "Pausing {}".format( self._getTime() ) )
+        return self._pollCnC( self.obj[ 'botMaster' ].pauseWorkforce() )
 
     def _pollCnC( self, pollInitiator = "Poll" ):
         cnc, results = self.obj[ 'botMaster' ], list()
