@@ -134,7 +134,7 @@ class sm_Input( sm_Base ):
 
         for optIdentifier, call in self.obj[ 'calls' ].iteritems(): 
             if option == optIdentifier:
-                self.cnc.evalGenerator( call )
+                self.cnc.pushTargets( call )
 
         # Reset curses
         curses.noecho()
