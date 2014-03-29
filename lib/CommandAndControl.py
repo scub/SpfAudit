@@ -77,15 +77,14 @@ class CommandAndControl( LoggedBase ):
             'eBrkrCnt'     : int( eBrokerCount ),
             'sBrkrCnt'     : int( sBrokerCount ),
 
-            # Worker Input Queue
+            # Worker I/O Queue
             'qin'          : Queue(),
-            # Output Queue To Be Replaced
             'qout'         : Queue(),
 
-            # Worker Sql Broker Queue
+            # Sql Broker Queue
             'sqout'        : Queue(),
 
-            # Worker Json Broker Queue
+            # Json Broker Queue
             'eqout'        : Queue(),
 
             'logPath'      : logPath,
@@ -101,6 +100,7 @@ class CommandAndControl( LoggedBase ):
             # last used id
             'lastId'       : 0,
             'exitQueued'   : False,
+            'botsPaused'   : True,
         }
 
         self._initWorkforce()
@@ -115,10 +115,7 @@ class CommandAndControl( LoggedBase ):
             to destructors performing admirably.
         """
         # Stop Workers
-        for workerList in [ self.state[ i ] for i in [ 'workers', 
-                                                       'sqlBrokers', 
-                                                       'esBrokers' ] ]:
-            map( self._stopWorker, self.state[ workerList ] ) 
+        self.stopWorkforce()
 
         # Flush Queues
         map( self._flushQueue, 
@@ -126,7 +123,6 @@ class CommandAndControl( LoggedBase ):
                                                   'qout',
                                                   'sqout', 
                                                   'eqout' ] ] )
-
         # print 'Nameserver statistics'
         self.state[ 'nameserver' ].stats()
     
@@ -160,6 +156,7 @@ class CommandAndControl( LoggedBase ):
                 else:
                     SpawnBot( self._newId(), Broker, wList, queue ) 
 
+        self.state[ 'exitQueued' ] = False
 
     def addWorker( self, worker_id ):
         """
@@ -211,6 +208,8 @@ class CommandAndControl( LoggedBase ):
         """
             Flush all remnants left in queue, then close
         """
+        if queue is None: return
+
         while not queue.empty():
             try:
                 queue.get_nowait()
@@ -228,6 +227,31 @@ class CommandAndControl( LoggedBase ):
 
         map( self._flushQueue, [ worker[ i ] for i in [ 'mQin', 'mQout' ] ] )
             
+    def pauseWorkforce( self ):
+        """
+            Pause/Continue worker processing
+        """
+        if self.state[ 'botsPaused' ]:
+            self._initWorkforce()
+            self.powerWorkforce()
+            return 'RESUMED'
+        else:
+            self.stopWorkforce()
+            return 'PAUSED'
+
+    def stopWorkforce( self ):
+        """
+            Stop workforce
+        """
+        # Stop Workers
+        for workerList in [ self.state[ i ] for i in [ 'workers', 
+                                                       'sqlBrokers', 
+                                                       'esBrokers' ] ]:
+            map( self._stopWorker, workerList ) 
+            del workerList[:]
+
+        self.state[ 'botsPaused' ] = True 
+
     def powerWorkforce( self ):
         """
             Start workforce to begin processing queued 
@@ -238,6 +262,8 @@ class CommandAndControl( LoggedBase ):
                                                        'esBrokers' ] ]:
  
             map( lambda worker: worker[ 'proc' ].start(), workerList )
+
+        self.state[ 'botsPaused' ] = False
     
     def cleanupWorkforce( self ):
         """
@@ -245,10 +271,7 @@ class CommandAndControl( LoggedBase ):
             Power Down Workforce
 
         """
-        for workerList in [ self.state[ i ] for i in [ 'workers', 
-                                                       'sqlBrokers', 
-                                                       'esBrokers' ] ]:
-            map( self._stopWorker, workerList )
+        self.stopWorkforce()
 
         map( self._flushQueue, 
              [ self.state[ i ] for i in [ 'qin', 'sqout', 'eqout' ] ] )
@@ -280,34 +303,29 @@ class CommandAndControl( LoggedBase ):
             the processing queue.
 
         """
-        self.state[ 'target_count' ] = 0
-        
-        
-        for target in target_generator():
 
-            self.state[ 'target_count' ] += 1
-            self.state[ 'qin' ].put( target )
-            
-            # Limit our queue size to `throttle` *  worker count
-            # this should reduce our foot print on larger runs
-            # considerably
-            if self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
-                self._log( 'pushTargets', 'DEBUG', 'Input Queue Throttle Has Been Triggered' )
-            
-                while self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
-                    sleep( 1 )
-            
-        for worker in range( self.state[ 'workerCount' ] ):
-            self.state[ 'qin' ].put( 'STOP' )
-        
-        self._log( 'pushTargets', 'DEBUG', 
-            "Number of targets queued [ {} ] / [ {} ]".format( 
-                self.state[ 'qin'          ].qsize(), 
-                self.state[ 'target_count' ] 
-            )
+        worker_id   = self._newId()
+        worker_proc = Process(
+            target = self.evalGenerator, 
+            name   = "TargetGenerator.{}".format( 
+                str( worker_id )
+            ),
+            kwargs = {
+                'generator' : target_generator,    
+            }
         )
+         
+        self.state[ 'CnCAuxiliary'  ].append( {
+            'id'    : worker_id, 
+            'proc'  : worker_proc, 
+            'mQin'  : None,
+            'mQout' : None,
+        } )
 
-    def evalGenerator( self, target_generator = None ):
+        self.state[ 'target_count' ] = 0
+        worker_proc.start()
+        
+    def evalGenerator( self, **kwargs ): 
         """
             Using a generator we feed our host information into 
             the processing queue.
@@ -316,21 +334,21 @@ class CommandAndControl( LoggedBase ):
             @param generator target_generator
         """
         
-        for target in target_generator( Node ):
+        for target in kwargs[ 'generator' ]( Node ):
 
+            if target is None: break 
+
+            self.state[ 'qin'          ].put( target )
             self.state[ 'target_count' ] += 1
-            self.state[ 'qin' ].put( target )
             
             # Limit our queue size to `throttle` *  worker count
             # this should reduce our foot print on larger runs
             # considerably
             if self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
-                self._log( 'pushTargets', 'DEBUG', 'Input Queue Throttle Has Been Triggered' )
-            
                 while self.state[ 'qin' ].qsize() >= self.state[ 'throttle' ]:
                     sleep( 1 )
             
-        self._log( 'pushTargets', 'DEBUG', 
+        self._log( 'evalGenerator', 'DEBUG', 
             "Finished queuing target nodes [ {} ] / [ {} ]".format( 
                 self.state[ 'qin' ].qsize(), 
                 self.state[ 'target_count' ] 
