@@ -59,12 +59,7 @@ http://localhost:8080
 
 Changes To Be Implemented
 -------------------------
- - Restructuring Curses Menu System
-    - Integrate Pause/Play option for Main Menu
-        - Kill / Start Brokers with io queues left intact
-    - Finish input Options
-        - File generator issues
- - Integrate SMTP Brokers
+ - Integrate SMTP Brokers And Manifests
  - Autorun in tmux session upon successful deployment
  - Connection Polling for scan initialization and sanity checks
  - Extend Vagrantfile to allow for cloud based deployment
