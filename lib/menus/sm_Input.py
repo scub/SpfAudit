@@ -66,6 +66,7 @@ class sm_Input( sm_Base ):
             'Single IP'  : self.GenerateIP, 
             'File'       : self.GenerateFile,
             'Archive'    : self.GenerateArchive,
+            'Domain'     : self.GenerateDom,
         } } )
 
     def GenerateArchive( self, nodeTemplate ):
@@ -112,7 +113,8 @@ class sm_Input( sm_Base ):
             @param  Node nodeTemplate - Node object definition, used to encapsulte records
             @return None
         """
-        pass
+        for node in [ nodeTemplate( a_records = [ self.process ] ) ]:
+            yield node
 
     # AS CIDR NOTATION IS ACCEPTED, FILES SHOULD 
     # ONLY BE USED TO FIRE THROUGH DOMAINS
