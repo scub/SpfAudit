@@ -18,6 +18,9 @@ from bots.sqlBroker       import sqlBroker
 from lib.types.nameserver import NameServer
 from lib.types.node       import Node
 
+
+from threading            import Lock
+
 class CommandAndControl( LoggedBase ):
     """
         Command And Control
@@ -71,13 +74,14 @@ class CommandAndControl( LoggedBase ):
             'esBrokers'    : [],
             'sqlBrokers'   : [],
             'workers'      : [],
+            'CnCAuxiliary'  : [],
 
             # Worker / Broker Counts 
             'workerCount'  : int( workerCount  ),
             'eBrkrCnt'     : int( eBrokerCount ),
             'sBrkrCnt'     : int( sBrokerCount ),
 
-            # Worker I/O Queue
+            # Worker I/O Queues
             'qin'          : Queue(),
             'qout'         : Queue(),
 
@@ -116,6 +120,9 @@ class CommandAndControl( LoggedBase ):
         """
         # Stop Workers
         self.stopWorkforce()
+
+        # Stop Auxiliary Workers
+        map( self._stopWorker, self.state[ 'CnCAuxiliary' ] )
 
         # Flush Queues
         map( self._flushQueue, 
@@ -176,7 +183,13 @@ class CommandAndControl( LoggedBase ):
                             
         self.state[ 'workers' ].append( {
             'id'     : worker_id,
-            'proc'   : Process( target=worker.background ),
+            'proc'   : Process( 
+                name   = "{}.{}".format( 
+                    'dnsBroker', 
+                    str( worker_id )
+                ),
+                target = worker.background 
+            ),
             'worker' : worker,
             'mQin'   : metaQin,
             'mQout'  : metaQout,
@@ -198,7 +211,13 @@ class CommandAndControl( LoggedBase ):
 
         self.state[ brokerList ].append( {
             'id'     : worker_id,
-            'proc'   : Process( target=broker.background ),
+            'proc'   : Process( 
+                name   = "{}.{}".format( 
+                    brokerList,
+                    str( worker_id )
+                ),
+                target = broker.background 
+            ),
             'broker' : broker,
             'mQin'   : metaQin,
             'mQout'  : metaQout,
@@ -287,6 +306,20 @@ class CommandAndControl( LoggedBase ):
 
         """
         if self.state[ 'exitQueued' ]: return
+
+        # Check auxiliary processes
+        finishedWorkers = []
+        for i in range( len( self.state[ 'CnCAuxiliary' ] ) ):
+            bot = self.state[ 'CnCAuxiliary' ][ i ]
+
+            if not bot[ 'proc' ].is_alive():
+                #self.state[ 'CnCAuxiliary' ].pop( i )
+                bot[ 'proc' ].terminate()
+                bot[ 'proc' ].join()
+                finishedWorkers.append( bot )
+
+        for bot in finishedWorkers:
+            self.state[ 'CnCAuxiliary' ].remove( bot )
 
         # Is there any input left to process?
         if self.state[ 'qin' ].qsize() <= 0:
