@@ -97,16 +97,34 @@ class sm_Input( sm_Base ):
         """
             Given a cidr block, encapsulate in a node
             object and yield 
+
+            @param  Node nodeTemplate - Node object definition, used to encapsulte records
+            @return None
         """
         for nodePayload in IpRange( self.process ):
             yield nodeTemplate( a_records = [ nodePayload ] )
 
     def GenerateDom(  self, nodeTemplate ):
+        """
+            Given a single domain, encapsulate it in a node
+            object before yielding it for further processing.
+
+            @param  Node nodeTemplate - Node object definition, used to encapsulte records
+            @return None
+        """
         pass
-        
+
     # AS CIDR NOTATION IS ACCEPTED, FILES SHOULD 
     # ONLY BE USED TO FIRE THROUGH DOMAINS
     def GenerateFile( self, nodeTemplate ):
+        """
+            Given a flat file, read off its contents
+            encapsulating each record in a node object 
+            for further processing upstream.
+
+            @param  Node nodeTemplate - Node object definition, used to encapsulte records
+            @return None
+        """
         with open( self.process, 'r' ) as fd:
             fd.readline()
 
@@ -114,10 +132,29 @@ class sm_Input( sm_Base ):
                 yield nodeTemplate( url = line.strip() )
 
     def GenerateIP( self, nodeTemplate ):
+        """
+            Given a single ip, encapsulate it in a node object
+            using the nodeTemplate, then queue it for further 
+            processing upstream.
+
+            @param  Node nodeTemplate - Node object definition, used to encapsulte records
+            @return None
+        """
         for ip in [ self.process ]:
             yield ip
     
     def obtainInput( self, option, cnc ):
+        """
+            Create a new window to obtain user input.
+
+            @param String            option   - Selected option
+            @param CommandAndControl cnc      - Command And Control Object
+
+            @return tuple ( 
+                    STRING selectedOption,
+                    STRING userInput,
+            )
+        """
         screen = curses.newwin( 3, 65, 4, 6 )
         screen.box()
 
