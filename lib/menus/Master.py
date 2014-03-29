@@ -111,7 +111,9 @@ class Master( baseMenu ):
         cnc.pollWorkforce() 
         sleep( 1 ) 
 
-        return self._pollCnC( 'Kill Engaged' ) 
+        output = self._pollCnC( 'Kill Engaged' )
+        cnc.stopWorkforce()
+        return output
 
     def _listCnC( self ):
         cnc = self.obj[ 'botMaster' ]
