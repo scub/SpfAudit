@@ -163,6 +163,7 @@ class Master( baseMenu ):
 
             results.append( '{} -> [{}];'.format( name, workerState ) )
 
+        results.append( self._getTime() )
         return ( pollInitiator, ' '.join( results ) )
 
     def _runtime2block( self, screen ):
