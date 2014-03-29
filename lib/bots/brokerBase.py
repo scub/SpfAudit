@@ -91,7 +91,10 @@ class brokerBase( LoggedBase ):
                 self.meta[ 'lrcd' ] = NodeObj
                 
                 # Process Node Object
-                self.process( NodeObj )
+                try:
+                    self.process( NodeObj )
+                except Exception as MalformedRecord:
+                    continue
 
                 # Increment Record Counter
                 self.meta[ 'rcnt' ] += 1
