@@ -46,28 +46,23 @@ class Master( baseMenu ):
                     display = [ ["B"], "ots" ],
                 ),
 
-                'Update' : Option(
-                    order   = 2,
-                    hotkeys = [ ord( 'u' ), ord( 'U' ) ],
-                    method  = lambda b = None: ( "UPDATE", "Propagated {}".format( self._getTime() ) ),
-                    display = [ ["U"], "pdate" ],
-                ),
-
                 # DEBUG
                 'Poll'   : Option(
-                    order   = 3,
+                    order   = 2,
                     hotkeys = [ ord( 'p' ), ord( 'P' ) ],
                     method  = self._pollCnC,
                     display = [ ["P"], "oll" ],
                 ),
+
                 'Pause/Play'  : Option(
-                    order   = 4,
+                    order   = 3,
                     hotkeys = [ ord( 'a' ), ord( 'A' ) ],
                     method  = self._pauseCnC, 
                     display = [ "P", ["a"], "use/Pl", ["a"], "y" ],
                 ),
+
                 'Kill'   : Option(
-                    order   = 5,
+                    order   = 4,
                     hotkeys = [ ord( 'k' ), ord( 'K' ) ],
                     method  = self._killCnC,
                     display = [ ["K"], "ill" ],
@@ -109,7 +104,7 @@ class Master( baseMenu ):
         cnc.pollWorkforce() 
         sleep( 1 ) 
 
-        return self._pollCnC( 'Kill Engaged' ) 
+        return self._pollCnC( 'Kill Engaged' )
 
     def _pauseCnC( self ):
         return self._pollCnC( self.obj[ 'botMaster' ].pauseWorkforce() )
