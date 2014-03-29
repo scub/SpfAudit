@@ -67,6 +67,13 @@ class Master( baseMenu ):
                     method  = self._killCnC,
                     display = [ ["K"], "ill" ],
                 ),
+
+                'List'   : Option( 
+                    order   = 5, 
+                    hotkeys = [ ord( 'l' ), ord( 'L' ) ],
+                    method  = self._listCnC, 
+                    display = [ ["L"], "ist" ]
+                ),
             }
         )
 
@@ -104,7 +111,28 @@ class Master( baseMenu ):
         cnc.pollWorkforce() 
         sleep( 1 ) 
 
-        return self._pollCnC( 'Kill Engaged' )
+        return self._pollCnC( 'Kill Engaged' ) 
+
+    def _listCnC( self ):
+        cnc = self.obj[ 'botMaster' ]
+
+        self._printScr( [ "Listing", "", "Bots", "====" ] )
+        for botList in [ cnc.state[ i ] for i in [ 'workers',
+                                                   'sqlBrokers',
+                                                   'esBrokers' ] ]:
+            self._printScr(
+                [ "Bot: {}".format( bot[ 'proc' ].name ) for bot in botList ]
+            )
+
+        self._printScr( [ "", "Conf", "====" ] )
+        for name, check in [ ( i, cnc.state[ i ] ) for i in [ 'lastId',
+                                                              'throttle',
+                                                              'target_count',
+                                                              'botsPaused',
+                                                              'exitQueued' ] ]: 
+            self._printScr( "Conf: {} => {}".format( name, str( check ) ) )
+
+        return ( 'Listing', 'Finished' )
 
     def _pauseCnC( self ):
         ret = self.obj[ 'botMaster' ].pauseWorkforce()
