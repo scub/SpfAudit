@@ -121,14 +121,17 @@ class Master( baseMenu ):
         results.append( 'Targets [ {} ];'.format( cnc.state[ 'target_count' ] ) )
 
         # Worker State 
-        for workerList in [ 'esBrokers', 'sqlBrokers', 'workers' ]:
-            results.append( ' -> '.join(
-                [ workerList, 
-                  "[{}];".format(
-                    "Alive" if all( map( lambda bot: bot[ 'proc' ].is_alive(), cnc.state[ workerList ] ) ) else "Dead" 
-                  )
-                ] )
-            )
+        for name, workerList in [ ( i, cnc.state[ i ] ) for i in [ 'esBrokers', 
+                                                                   'sqlBrokers', 
+                                                                   'workers'     ] ]:
+
+            if len( workerList ) > 0 and all(
+                map( lambda bot: bot[ 'proc' ].is_alive(), workerList ) ):
+                workerState = "Alive"
+            else:
+                workerState = "Dead"
+
+            results.append( '{} -> [{}];'.format( name, workerState ) )
 
         return ( pollInitiator, ' '.join( results ) )
 
