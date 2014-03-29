@@ -121,7 +121,8 @@ class Master( baseMenu ):
         self._printScr( [ "Listing", "", "Bots", "====" ] )
         for botList in [ cnc.state[ i ] for i in [ 'workers',
                                                    'sqlBrokers',
-                                                   'esBrokers' ] ]:
+                                                   'esBrokers',  
+                                                   'CnCAuxiliary' ] ]:
             self._printScr(
                 [ "Bot: {}".format( bot[ 'proc' ].name ) for bot in botList ]
             )
@@ -149,8 +150,8 @@ class Master( baseMenu ):
     def _pollCnC( self, pollInitiator = "Poll" ):
         cnc, results = self.obj[ 'botMaster' ], list()
 
-        # Target Count
-        results.append( 'Targets [ {} ];'.format( cnc.state[ 'target_count' ] ) )
+        # Wreap dead workers 
+        cnc.pollWorkforce()
 
         # Worker State 
         for name, workerList in [ ( i, cnc.state[ i ] ) for i in [ 'esBrokers', 
