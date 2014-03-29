@@ -107,7 +107,14 @@ class Master( baseMenu ):
         return self._pollCnC( 'Kill Engaged' )
 
     def _pauseCnC( self ):
-        return self._pollCnC( self.obj[ 'botMaster' ].pauseWorkforce() )
+        ret = self.obj[ 'botMaster' ].pauseWorkforce()
+
+        self.obj[ 'screen' ].refresh()
+        self.obj[ 'subscr' ].refresh()
+
+        curses.noecho()
+        curses.cbreak()
+        return self._pollCnC( ret )
 
     def _pollCnC( self, pollInitiator = "Poll" ):
         cnc, results = self.obj[ 'botMaster' ], list()
