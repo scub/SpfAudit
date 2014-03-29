@@ -18,9 +18,6 @@ from bots.sqlBroker       import sqlBroker
 from lib.types.nameserver import NameServer
 from lib.types.node       import Node
 
-
-from threading            import Lock
-
 class CommandAndControl( LoggedBase ):
     """
         Command And Control
