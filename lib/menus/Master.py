@@ -201,17 +201,3 @@ class Master( baseMenu ):
         """
         self._runtime2block( self.timeWin )
         return None 
-
-    def sm_Bots( self, subscr, y_max, x_max, nodeTemplate, optionTemplate ):
-        return ( 'bots','rawr' ) 
-
-if __name__ == '__main__':
-    def cnc( *args, **kwargs ):
-        """
-            hehe
-        """
-        pass
-
-    x = master()
-    x.view()
-    del x 
