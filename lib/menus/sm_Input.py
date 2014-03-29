@@ -23,29 +23,37 @@ class sm_Input( sm_Base ):
 
         super( sm_Input, self ).__init__( 
             options           = {
-                'File'       : Option( 
+                'Archive'    : Option(
                     order   = 0,
+                    hotkeys = [ ord( 'a' ), ord( 'A' ) ],
+                    method  = self.obtainInput,
+                    display = [ ["A"], "rchive" ],
+                ),
+
+                'File'       : Option( 
+                    order   = 1,
                     hotkeys = [ ord( 'f' ), ord( 'F' ) ],
                     method  = self.obtainInput, 
                     display = [ ["F"], "ile" ],
                 ),
 
+
                 'CIDR Block' : Option(
-                    order   = 1, 
+                    order   = 2, 
                     hotkeys = [ ord( 'c' ), ord( 'C' ) ],
                     method  = self.obtainInput, 
                     display = [ ["C"], "IDR Block" ],
                 ),
 
                 'Domain'     : Option(
-                    order   = 2,
+                    order   = 3,
                     hotkeys = [ ord( 'd' ), ord( 'D' ) ],
                     method  = self.obtainInput, 
                     display = [ ["D"], "omain" ],
                        ),
 
                 'Single IP'  : Option(
-                    order   = 3,
+                    order   = 4,
                     hotkeys = [ ord( 'i' ), ord( 'I' ) ],
                     method  = self.obtainInput, 
                     display = [ "Single ", ["I"], "p" ],
@@ -57,7 +65,33 @@ class sm_Input( sm_Base ):
             'CIDR Block' : self.GenerateCIDR,
             'Single IP'  : self.GenerateIP, 
             'File'       : self.GenerateFile,
+            'Archive'    : self.GenerateArchive,
         } } )
+
+    def GenerateArchive( self, nodeTemplate ):
+        """
+            Given an xz compressed archive, read off its contents
+            encapsulating each record in a node object for further
+            processing upstream. 
+
+            @param  Node nodeTemplate - Node object definition, used to encapsulte records
+            @return None
+        """
+        fd = LZMAFile( self.process )
+
+        # Yank Header Information
+        buf = fd.next()
+
+        # Begin processing
+        while True:
+            try:
+                line = fd.next()
+            except StopIteration as FinishedProcessing:
+                break
+
+            yield nodeTemplate( url = line.strip() ) 
+
+        fd.close()
 
     def GenerateCIDR( self, nodeTemplate ):
         """
@@ -79,7 +113,7 @@ class sm_Input( sm_Base ):
             for line in fd.readlines():
                 yield nodeTemplate( url = line.strip() )
 
-    def GenerateIP(   self, nodeTemplate ):
+    def GenerateIP( self, nodeTemplate ):
         for ip in [ self.process ]:
             yield ip
     
