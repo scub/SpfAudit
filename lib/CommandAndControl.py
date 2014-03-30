@@ -69,43 +69,43 @@ class CommandAndControl( LoggedBase ):
         
         self.state = {
             # Nameserver
-            'nameserver'   : NameServer(),
+            'nameserver'    : NameServer(),
 
             # Worker / Broker Lists 
-            'esBrokers'    : [],
-            'sqlBrokers'   : [],
-            'workers'      : [],
+            'esBrokers'     : [],
+            'sqlBrokers'    : [],
+            'workers'       : [],
             'CnCAuxiliary'  : [],
 
             # Worker / Broker Counts 
-            'workerCount'  : int( workerCount  ),
-            'eBrkrCnt'     : int( eBrokerCount ),
-            'sBrkrCnt'     : int( sBrokerCount ),
+            'workerCount'   : int( workerCount  ),
+            'eBrkrCnt'      : int( eBrokerCount ),
+            'sBrkrCnt'      : int( sBrokerCount ),
 
             # Worker I/O Queues
-            'qin'          : Queue(),
-            'qout'         : Queue(),
+            'qin'           : Queue(),
+            'qout'          : Queue(),
 
             # Sql Broker Queue
-            'sqout'        : Queue(),
+            'sqout'         : Queue(),
 
             # Json Broker Queue
-            'eqout'        : Queue(),
+            'eqout'         : Queue(),
 
-            'logPath'      : logPath,
+            'logPath'       : logPath,
 
             # QUEUE THROTTLING ( `throttle` * # Workers; Defaults to 100 per worker )
-            'throttle'     : int( workerCount ) * throttle,
-            'targets'      : [],
-            'target_count' : 0,
+            'throttle'      : int( workerCount ) * throttle,
+            'targets'       : [],
+            'target_count'  : 0,
 
             # GeoIP Goodies
-            'geoip'        : None if geoipPath is None else Reader( geoipPath ),
+            'geoip'         : None if geoipPath is None else Reader( geoipPath ),
 
             # last used id
-            'lastId'       : 0,
-            'exitQueued'   : False,
-            'botsPaused'   : True,
+            'lastId'        : 0,
+            'exitQueued'    : False,
+            'botsPaused'    : True,
         }
 
         self._initWorkforce()
