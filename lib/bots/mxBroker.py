@@ -82,9 +82,9 @@ class mxBroker( brokerBase ):
         at the opensource spf organizations homepage: http://www.openspf.org
         """.format( node.url )
 
-        self._spam( self.state[ 'sender' ], "root@{}".format(  node.url ), Message )
-
-    def _spam( self, sender, recpt, message );
+        self._spam( self.state[ 'sender' ], "root@{}".format( node.url ), Message )
+        
+    def _spam( self, sender, recpt, message ):
         """
               Send email to given user using given name
 
