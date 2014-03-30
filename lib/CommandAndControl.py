@@ -16,8 +16,8 @@ from bots.sqlBroker       import sqlBroker
 from bots.mxBroker        import mxBroker
 
 # Custom Types
-from lib.types.nameserver import NameServer
-from lib.types.node       import Node
+from types.nameserver import NameServer
+from types.node       import Node
 
 class CommandAndControl( LoggedBase ):
     """
