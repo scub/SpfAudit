@@ -122,6 +122,7 @@ class Master( baseMenu ):
         for botList in [ cnc.state[ i ] for i in [ 'workers',
                                                    'sqlBrokers',
                                                    'esBrokers',  
+                                                   'mxBrokers',
                                                    'CnCAuxiliary' ] ]:
             self._printScr(
                 [ "Bot: {}".format( bot[ 'proc' ].name ) for bot in botList ]
@@ -156,6 +157,7 @@ class Master( baseMenu ):
         # Worker State 
         for name, workerList in [ ( i, cnc.state[ i ] ) for i in [ 'esBrokers', 
                                                                    'sqlBrokers', 
+                                                                   'mxBrokers',
                                                                    'workers'     ] ]:
 
             if len( workerList ) > 0 and all(
