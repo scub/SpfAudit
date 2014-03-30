@@ -55,8 +55,12 @@ class CommandAndControl( LoggedBase ):
         """
             Create new CommandAndControl object.
 
-            @param INT    workerCount - Number of workers to spin up
-            @param STRING logPath     - Path to log to
+            @param INT    workerCount  - Number of workers to spin up
+            @param INT    eBrokerCount - Number of Json brokers to spin 
+            @param INT    sBrokerCount - Number of Sql Brokers to spin 
+            @param STRING logPath      - Path to log to
+            @param STRING geoipPath    - Path to geoip database
+            @param INT    throttle     - Throttle seed, value becomes throttle * workerCount
         """
 
         super( CommandAndControl, self ).__init__( workerId      = 0,
@@ -105,7 +109,6 @@ class CommandAndControl( LoggedBase ):
         }
 
         self._initWorkforce()
-
 
         self._log( 'init', 'DEBUG', 'Command and control initialized, workers queued and ready for input.' )
         
