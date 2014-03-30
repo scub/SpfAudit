@@ -113,7 +113,7 @@ class sm_Input( sm_Base ):
             @param  Node nodeTemplate - Node object definition, used to encapsulte records
             @return None
         """
-        for node in [ nodeTemplate( a_records = [ self.process ] ) ]:
+        for node in [ nodeTemplate( url = self.process  ) ]:
             yield node
 
     # AS CIDR NOTATION IS ACCEPTED, FILES SHOULD 
