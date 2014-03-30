@@ -6,7 +6,6 @@ from Queue      import Empty   as QueueEmpty
 from random     import choice
 
 # Custom libs
-#from bases      import LoggedBase
 from brokerBase import brokerBase
 from dnsProbe   import Probe
 
@@ -19,6 +18,7 @@ class dnsBroker( brokerBase ):
                   qin       = None, 
                   sqout     = None, 
                   eqout     = None,
+                  mqout     = None,
                   metaQin   = None, 
                   metaQout  = None, 
                   geoip     = None ):
@@ -34,6 +34,7 @@ class dnsBroker( brokerBase ):
             @param Queue      qin        - Input Queue
             @param Queue      sqout      - SqlBroker Input  Queue
             @param Queue      eqout      - Json Broker Output Queue
+            @param Queue      mqout      - MX Broker Output Queue
             @param Queue      metaQin    - Meta Input Queue  (Used by menus)
             @param Queue      metaQout   - Meta Output Queue (Used by menus)
             @param Reader     geoip      - Initialized geoip2.database.Reader object
@@ -60,10 +61,8 @@ class dnsBroker( brokerBase ):
             # SPF Regex
             'rgspf'   : reg_compile( '^"v\=(spf[0-9].*)"$' ),
             
-            # Output QUeues
-            'sqout'   : sqout,
-            'eqout'   : eqout,
-
+            # Output Queues
+            'qout'    : [ sqout, eqout, mqout ],
 
             # GeoIp Db Wrapper
             'geoip'   : geoip,
@@ -79,8 +78,8 @@ class dnsBroker( brokerBase ):
 
             @return None
         """
-        map( lambda queue: queue.put( node ), 
-             [ self.state[ i ] for i in [ 'eqout', 'sqout' ] ] )
+        map( lambda queue: queue.put( node ), self.state[ 'qout' ] ) 
+
 
     def build_host( self, node ):
         """
@@ -121,7 +120,6 @@ class dnsBroker( brokerBase ):
             self._log( 'build_host', 'DEBUG', 'Lookup has failed for {}'.format( NodeId ) )
 
         return node
-
 
     def process( self, node ):
         """
