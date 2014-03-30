@@ -8,6 +8,6 @@ class sm_Mx( sm_brokerBase ):
 
         super( sm_Mx, self ).__init__(
             CommandAndControl = CommandAndControl,
-            botList           = 'mBrokers',
+            botList           = 'mxBrokers',
             menuName          = 'Mx Broker',
         )

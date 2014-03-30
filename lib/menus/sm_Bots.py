@@ -9,6 +9,7 @@ from    sm_Base  import sm_Base
 from    sm_Dns   import sm_Dns
 from    sm_Json  import sm_Json
 from    sm_SQL   import sm_SQL
+from    sm_Mx    import sm_Mx
 
 class sm_Bots( sm_Base ):
 
@@ -16,7 +17,7 @@ class sm_Bots( sm_Base ):
 
         super( sm_Bots, self ).__init__(
             x_src   = 5,
-            lines   = 5,
+            lines   = 6,
             cnc     = CommandAndControl,
             options = {
                 'DNS Broker'  : Option(
