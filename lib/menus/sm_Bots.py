@@ -1,9 +1,11 @@
 #!/usr/bin/python
 
+# Std Lib
 import  curses
-from    sm_Base  import sm_Base
-from    baseMenu import Option
 
+# Custom Modules
+from    baseMenu import Option
+from    sm_Base  import sm_Base
 from    sm_Dns   import sm_Dns
 from    sm_Json  import sm_Json
 from    sm_SQL   import sm_SQL
@@ -36,6 +38,13 @@ class sm_Bots( sm_Base ):
                     hotkeys = [ ord( 's' ), ord( 'S' ) ],
                     method  = sm_SQL,
                     display = [ ["S"], "QL Broker" ], 
+                ),
+
+                'MX Broker'   : Option(
+                    order   = 3,
+                    hotkeys = [ ord( 'm' ), ord( 'M' ) ],
+                    method  = sm_Mx,
+                    display = [ ["M"], "X Broker" ],
                 ),
             },
         )
