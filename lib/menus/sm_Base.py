@@ -67,15 +67,6 @@ class sm_Base( object ):
             for optName, option in self.inputOptions.iteritems():
                 if selection in option.hotkeys:
 
-                    #<DEBUG>
-                    with open( 'rawr.log', 'wa+' ) as fd:
-
-                        fd.write( '\t[!] sm_Base.Function -> {}\n'.format( option.method.__name__ ) )
-                        fd.write( '\t\t- Type: {}\r\n'.format( str( type( option.method ) ) ) ) 
-                        for line in traceback.extract_stack()[:-1]:
-                            fd.write( "\t\t{}\r\n".format( ': '.join( [ str(x) for x in line ] ) ) )
-                    #</DEBUG>
-
                     optMenu = option.method( optName, self.obj[ 'cnc' ] )
 
                     if type( optMenu ) == tuple: return optMenu
