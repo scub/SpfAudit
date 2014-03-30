@@ -203,7 +203,6 @@ class baseMenu( object ):
         # Give ourselves a fresh template
         # Helps with submenus
 
-
         y_max, x_max = self.obj[ 'screen' ].getmaxyx()
         screen       = self.obj[ 'screen' ].subwin( y_max - 1, x_max - 1, 0, 0 )
         y_max, x_max = screen.getmaxyx() 
@@ -283,7 +282,6 @@ class baseMenu( object ):
         screen = None
         self._drawFrame( screen )
 
-
     def view( self ):
         """
             Display main menu
@@ -293,27 +291,3 @@ class baseMenu( object ):
         except StopIteration as ExitCalled:
             self.__del__()
             return ( 'View', 'Stopping Iteration' )
-
-if __name__ == '__main__':
-    def cnc( *args, **kwargs ):
-        """
-            hehe
-        """
-        pass
-
-    def update( subscr, y_max, x_max, nodeTemplate, optionTemplate ):
-        return ( "UPDATE", "Propagated" )
-
-    x = baseMenu( options = {
-            'Update' : Option( 
-                order   = 9,
-                hotkeys = [ ord( 'u' ), ord( 'U' ) ],
-                method  = update,
-                display = [ ["U"], "pdate" ],
-            ), 
-        },
-    )
-
-    # CommandAndControl = cnc )
-    x.view()
-    del x

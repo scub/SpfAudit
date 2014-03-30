@@ -56,8 +56,11 @@ class esBroker( brokerBase ):
         if self.find( node ): return         
 
         # Woohoo, A New Boxen. Lets Catalog It!
-        self.state[ 'es' ].index( index    = "spfaudit", 
-                                  doc_type = "node", 
-                                  body     = node.convert( 'json', 
-                                                           self.state[ 'geoip' ] )
+        self.state[ 'es' ].index( 
+            index    = "spfaudit", 
+            doc_type = "node", 
+            body     = node.convert( 
+                'json', 
+                self.state[ 'geoip' ] 
+            )
         )
