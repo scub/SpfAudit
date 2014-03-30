@@ -13,6 +13,7 @@ from bots.bases           import LoggedBase
 from bots.dnsBroker       import dnsBroker 
 from bots.esBroker        import esBroker
 from bots.sqlBroker       import sqlBroker
+from bots.mxBroker        import mxBroker
 
 # Custom Types
 from lib.types.nameserver import NameServer
@@ -49,6 +50,7 @@ class CommandAndControl( LoggedBase ):
                   workerCount  = 3, 
                   eBrokerCount = 3, 
                   sBrokerCount = 1, 
+                  mBrokerCount = 1,
                   logPath      = 'var/log/gmx_snoop.log', 
                   geoipPath    = None,
                   throttle     = 100 ):
@@ -58,6 +60,7 @@ class CommandAndControl( LoggedBase ):
             @param INT    workerCount  - Number of workers to spin up
             @param INT    eBrokerCount - Number of Json brokers to spin 
             @param INT    sBrokerCount - Number of Sql Brokers to spin 
+            @param INT    mBrokerCount - Number of MX Brokers to spin 
             @param STRING logPath      - Path to log to
             @param STRING geoipPath    - Path to geoip database
             @param INT    throttle     - Throttle seed, value becomes throttle * workerCount
@@ -72,6 +75,7 @@ class CommandAndControl( LoggedBase ):
             'nameserver'    : NameServer(),
 
             # Worker / Broker Lists 
+            'mxBrokers'     : [],
             'esBrokers'     : [],
             'sqlBrokers'    : [],
             'workers'       : [],
@@ -81,6 +85,7 @@ class CommandAndControl( LoggedBase ):
             'workerCount'   : int( workerCount  ),
             'eBrkrCnt'      : int( eBrokerCount ),
             'sBrkrCnt'      : int( sBrokerCount ),
+            'mBrkrCnt'      : int( mBrokerCount ),
 
             # Worker I/O Queues
             'qin'           : Queue(),
@@ -92,6 +97,10 @@ class CommandAndControl( LoggedBase ):
             # Json Broker Queue
             'eqout'         : Queue(),
 
+            # MX Broker Queue
+            'mqout'         : Queue(),
+
+            # Logging Path
             'logPath'       : logPath,
 
             # QUEUE THROTTLING ( `throttle` * # Workers; Defaults to 100 per worker )
@@ -129,7 +138,8 @@ class CommandAndControl( LoggedBase ):
              [ self.state[ queue ] for queue in [ 'qin',
                                                   'qout',
                                                   'sqout', 
-                                                  'eqout' ] ] )
+                                                  'eqout',
+                                                  'mqout'  ] ] )
         # print 'Nameserver statistics'
         self.state[ 'nameserver' ].stats()
     
@@ -153,7 +163,8 @@ class CommandAndControl( LoggedBase ):
         for ( wList, count, SpawnBot, queue, Broker ) in [ 
             ( 'workers',    self.state[ 'workerCount' ], self.addWorker, None,                   None      ),
             ( 'sqlBrokers', self.state[ 'sBrkrCnt'    ], self.addBroker, self.state[ 'sqout'  ], sqlBroker ),
-            ( 'esBrokers',  self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'eqout'  ], esBroker  ) ]:
+            ( 'esBrokers',  self.state[ 'eBrkrCnt'    ], self.addBroker, self.state[ 'eqout'  ], esBroker  ),
+            ( 'mxBrokers',  self.state[ 'mBrkrCnt'    ], self.addBroker, self.state[ 'mqout'  ], mxBroker  ) ]:
 
             lid        = self.state[ 'lastId' ]
             start, end = lid, count + lid
@@ -177,6 +188,7 @@ class CommandAndControl( LoggedBase ):
                             qin        = self.state[ 'qin'        ], 
                             sqout      = self.state[ 'sqout'      ],
                             eqout      = self.state[ 'eqout'      ],
+                            mqout      = self.state[ 'mqout'      ],
                             metaQin    = metaQin, 
                             metaQout   = metaQout )
                             
@@ -265,7 +277,8 @@ class CommandAndControl( LoggedBase ):
         # Stop Workers
         for workerList in [ self.state[ i ] for i in [ 'workers', 
                                                        'sqlBrokers', 
-                                                       'esBrokers' ] ]:
+                                                       'esBrokers',
+                                                       'mxBrokers'   ] ]:
             map( self._stopWorker, workerList ) 
             del workerList[:]
 
@@ -278,7 +291,8 @@ class CommandAndControl( LoggedBase ):
         """
         for workerList in [ self.state[ i ] for i in [ 'workers', 
                                                        'sqlBrokers', 
-                                                       'esBrokers' ] ]:
+                                                       'esBrokers',
+                                                       'mxBrokers'   ] ]:
  
             map( lambda worker: worker[ 'proc' ].start(), workerList )
 
@@ -293,7 +307,7 @@ class CommandAndControl( LoggedBase ):
         self.stopWorkforce()
 
         map( self._flushQueue, 
-             [ self.state[ i ] for i in [ 'qin', 'sqout', 'eqout' ] ] )
+             [ self.state[ i ] for i in [ 'qin', 'sqout', 'eqout', 'mqout' ] ] )
 
 
     def pollWorkforce( self ):
@@ -328,6 +342,7 @@ class CommandAndControl( LoggedBase ):
                 # Insert STOP onto queues to stop brokers once complete
                 map( self.state[ 'eqout' ].put, [ "STOP" for i in range( self.state[ 'eBrkrCnt' ] + 1 ) ] )
                 map( self.state[ 'sqout' ].put, [ "STOP" for i in range( self.state[ 'sBrkrCnt' ] + 1 ) ] )
+                map( self.state[ 'mqout' ].put, [ "STOP" for i in range( self.state[ 'mBrkrCnt' ] + 1 ) ] )
                 self.state[ 'exitQueued' ] = True
 
     def pushTargets( self, target_generator ):
