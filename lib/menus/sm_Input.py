@@ -142,8 +142,8 @@ class sm_Input( sm_Base ):
             @param  Node nodeTemplate - Node object definition, used to encapsulte records
             @return None
         """
-        for ip in [ self.process ]:
-            yield ip
+        for node in [ nodeTemplate( a_records = [ self.process ] ) ]:
+            yield node 
     
     def obtainInput( self, option, cnc ):
         """
