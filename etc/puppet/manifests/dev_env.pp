@@ -35,9 +35,13 @@ class dev_env {
             name    => 'python-pip',
             require => Package[ 'SETUPTOOLS' ];
 
+        'SENDMAIL':
+            name    => 'sendmail-bin',
+            require => Package[ 'PIP' ];
+
         'PYLZMA':
             name    => 'python-lzma',
-            require => Package[ 'PIP' ];
+            require => Package[ 'SENDMAIL' ];
     }
 
     # Snatch External Libs and Geoip Database
