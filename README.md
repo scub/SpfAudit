@@ -52,16 +52,24 @@ dependencies installed and services configured for us.
 vagrant up --provision-with puppet && vagrant reload && vagrant provision
 ```
 
- All that is left is to kick on a browser and watch the data aggregate
+  Once the machine has been provisioned we are ready to start scanning,
+all that is required is to shell into the virtual machine and begin.
+```bash
+vagrant ssh
+```
+
+ After entering the nodes you wish to audit, all that is left is to kick 
+on a browser and watch the data aggregate
 ```bash
 http://localhost:8080
 ```
 
-Changes To Be Implemented
--------------------------
- - Autorun in tmux session upon successful deployment
+Upcoming Changes/Events
+-----------------------
  - Connection Polling for scan initialization and sanity checks
  - Extend Vagrantfile to allow for cloud based deployment
+ - "The Big Run"
+
 
 Example Run State
 -----------------
