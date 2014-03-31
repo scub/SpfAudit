@@ -71,5 +71,14 @@ class daemon_prep {
             group   => 'nginx',
             mode    => 0600,
             require => Exec[ 'Fix-Perms-Dirs' ];
+
+        'Kibana-Dashboard.json':
+            ensure  => file,
+            path    => '/usr/local/www/kibana-3.0.0milestone5/app/dashboards/default.json',
+            source  => '/vagrant/etc/puppet/files/kibana/default.json',
+            owner   => 'nginx',
+            group   => 'nginx',
+            mode    => 0600,
+            require => File[ 'Kibana-config.js' ];
     }
 }
