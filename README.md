@@ -38,6 +38,13 @@ with normalization and organization of data in concert with elasticsearch,
 which when paired with an open source analytics engine such as kibana provides
 an ample backend for real-time analytics.
 
+  The dataset that will be used is the recently compiled DNS Census, which
+was released to the public back in 2013. While the original set in its entirety
+is around 2.7 billion records, through normalization techniques and specific 
+targeting the number of hosts requiring processing was reduced dramatically.
+
+- <a href="http://dnscensus2013.neocities.org/statistics.html">DNS Census 2013</a>
+ 
 Recreate the results
 --------------------
 
