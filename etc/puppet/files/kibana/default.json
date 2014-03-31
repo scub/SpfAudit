@@ -23,21 +23,12 @@
         },
         "2": {
           "id": 2,
-          "color": "#629E51",
+          "color": "#508642",
           "alias": "Secure hosts",
           "pin": true,
           "type": "lucene",
           "enable": true,
-          "query": "type:Node && ( mx_hosted:Internal |(( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))"
-        },
-        "3": {
-          "id": 3,
-          "color": "#508642",
-          "alias": "Internal Secure",
-          "pin": true,
-          "type": "lucene",
-          "enable": true,
-          "query": "type:Node && mx_hosted:Internal"
+          "query": "type:Node && (mx_hosted:Internal|(( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))"
         },
         "4": {
           "id": 4,
@@ -53,7 +44,6 @@
         0,
         1,
         2,
-        3,
         4
       ]
     },
@@ -62,7 +52,7 @@
         "0": {
           "type": "time",
           "field": "@timestamp",
-          "from": "now-5m",
+          "from": "now-1h",
           "to": "now",
           "mandate": "must",
           "active": true,
@@ -158,8 +148,7 @@
             "ids": [
               0,
               1,
-              2,
-              3
+              2
             ]
           },
           "annotate": {
@@ -174,7 +163,7 @@
           },
           "auto_int": true,
           "resolution": 100,
-          "interval": "1s",
+          "interval": "30s",
           "intervals": [
             "auto",
             "1s",
@@ -236,7 +225,7 @@
           "queries": {
             "mode": "selected",
             "ids": [
-              0
+              4
             ]
           },
           "title": "Vulnerable Exchanges"
@@ -285,7 +274,7 @@
           "queries": {
             "mode": "selected",
             "ids": [
-              3
+              4
             ]
           },
           "style": {
@@ -317,16 +306,8 @@
       "query": "*",
       "pinned": true,
       "history": [
-        "type:Node",
-        "type:Node && mx_hosted:Internal",
-        "type:Node && ( mx_hosted:Internal |(( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))",
-        "type:Node && ((mx_hosted:External && spf_method:None )|(( mx_hosted:External | mx_hosted:Google ) && ( spf_method:Neutral | spf_method:SoftFail )))",
-        "type:Node && (( mx_hosted:Google && spf_method:None )|( mx_hosted:External && spf_method:Pass ))",
-        "",
         "*",
-        "type:Node && ( mx_hosted:internal | (( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))",
-        "type:Node && ( mx_hosted:External | mx_hosted:Google ) && ( spf_method:Neutral | spf_method:SoftFail )",
-        "type:Node && ( mx_hosted:Google ) && spf_method:None"
+        "type:Node",
       ],
       "remember": 10
     },
@@ -386,5 +367,5 @@
     "load_local": false,
     "hide": false
   },
-  "refresh": false
+  "refresh": "1m"
 }

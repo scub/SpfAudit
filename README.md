@@ -59,11 +59,9 @@ http://localhost:8080
 
 Changes To Be Implemented
 -------------------------
- - Integrate SMTP Brokers And Manifests
  - Autorun in tmux session upon successful deployment
  - Connection Polling for scan initialization and sanity checks
  - Extend Vagrantfile to allow for cloud based deployment
-
 
 Example Run State
 -----------------
@@ -80,4 +78,4 @@ Example Run State
 <img src='http://i.imgur.com/bXfvkIX.jpg'/>
 
 - Kibana/Nginx Stats Tracking
-<img src='http://i.imgur.com/4z5o09F.jpg'/>
+<img src='http://i.imgur.com/vwWYSWn.jpg'/>
