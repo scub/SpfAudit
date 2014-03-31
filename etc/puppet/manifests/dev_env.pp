@@ -98,5 +98,15 @@ class dev_env {
             path   => "/vagrant/var/audit/etc",
             target => "/vagrant/etc";
 
+        'TMUX.CONF':
+            ensure => file,
+            path   => "/etc/tmux.conf",
+            source => "/vagrant/etc/puppet/files/host/tmux.conf";
+
+        'Bashrc':
+            ensure => file,
+            path   => "/home/vagrant/.bashrc",
+            source => "/vagrant/etc/puppet/files/host/bashrc";
+
     }
 }
