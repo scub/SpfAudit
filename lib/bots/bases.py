@@ -2,6 +2,8 @@
 
 from    Queue           import Empty as QueueEmpty
 from    multiprocessing import Queue
+from    time            import sleep
+from    datetime        import datetime
 import  logging
 
 LOGLEVEL = logging.NOTSET
@@ -54,6 +56,9 @@ class LoggedBase( object ):
 
             # Last Record Number Procesed
             'lrcnt'    : 0,
+
+            # Nap Weight
+            'deltaL'   : None,
         }
 
         # Stats Fed By Menu System
@@ -195,3 +200,22 @@ class LoggedBase( object ):
         """
         self.meta[ 'verbose' ] = False
         return "[{}-{}]: Flushed Observable State.".format( self.meta[ 'purpose' ], self.meta[ 'id' ] )
+
+    def _nap( self ):
+        """
+                Nap scales based on number of 
+            seconds since last processed record.
+
+        """
+        ( curDelta, napTime ) = ( datetime.now(), 1 )
+
+        deltaT                = curDelta - self.meta[ 'deltaL' ] 
+
+        if deltaT.seconds < 1:
+            pass 
+        elif deltaT.seconds < 90:
+            napTime = deltaT.seconds
+        else:
+            napTime = self.meta[ 'maxNap' ]
+
+        sleep( napTime )
