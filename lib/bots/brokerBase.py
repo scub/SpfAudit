@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from Queue import Empty      as QueueEmpty
-from bases import LoggedBase
-from time  import sleep
+from Queue    import Empty      as QueueEmpty
+from bases    import LoggedBase
+from datetime import datetime 
 import os
 
 class brokerBase( LoggedBase ):
@@ -71,6 +71,9 @@ class brokerBase( LoggedBase ):
 
         self._log( 'background', 'DEBUG', "Started with pid {}".format( os.getpid() ) )
 
+        # Initiate our time delta
+        self.meta[ 'deltaL' ] = datetime.now()
+
         while self.state[ 'alive' ]:
 
             self._processMeta( self.state[ 'mQin' ], self.state[ 'mQout' ] )
@@ -78,11 +81,14 @@ class brokerBase( LoggedBase ):
             try:
                 NodeObj = self.state[ 'qin' ].get_nowait()
             except QueueEmpty as AwaitingData:
-                #sleep( 1 ) < integrate scaling nap() in logged base, replace all instances of sleep()
+                self._nap()
                 continue
             except StopIteration as StopProcessing:
                 self.state[ 'alive' ] = false
                 continue
+
+            # Reset time delta
+            self.meta[ 'deltaL' ] = datetime.now()
 
             # Check That We Are A Node Object
             if type( NodeObj ) != str:
