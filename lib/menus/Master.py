@@ -203,4 +203,6 @@ class Master( baseMenu ):
             Return None To An Unneeded Scroll 
         """
         self._runtime2block( self.timeWin )
+        self.obj[ 'botMaster' ].connectionPoll()
+
         return None 
