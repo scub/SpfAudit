@@ -1,9 +1,13 @@
 #!/usr/bin/python
 
 # Std Lib
-from multiprocessing      import Queue, Process
+from socket               import socket, SOCK_STREAM, AF_INET, timeout as SOCKET_TIMEOUT
+from socket               import error as SOCKET_ERROR
 from Queue                import Empty as QueueEmpty
+from multiprocessing      import Queue, Process
+from datetime             import datetime
 from time                 import sleep
+from random               import choice
 
 # 3rd Party Libs (MaxMind Geoip2) pip install geoip2
 from geoip2.database      import Reader
@@ -115,6 +119,26 @@ class CommandAndControl( LoggedBase ):
             'lastId'        : 0,
             'exitQueued'    : False,
             'botsPaused'    : True,
+            'lastTCheck'    : None,
+
+            # Application Layer Connection Polling
+            # root is not always an option. 
+            # (HTTP traffic is begnign enough)
+            'conPoll'       : [
+                "74.125.239.132",
+                "74.125.239.131",
+                "74.125.239.136",
+                "74.125.239.137",
+                "74.125.239.130",
+                "74.125.239.129",
+                "74.125.239.133",
+                "74.125.239.134",
+                "74.125.239.128",
+                "74.125.239.142",
+                "74.125.239.135",
+            ], #P.S: Thanks Again Mister Googles <3
+
+
         }
 
         self._initWorkforce()
@@ -321,6 +345,7 @@ class CommandAndControl( LoggedBase ):
         """
         if self.state[ 'exitQueued' ]: return
 
+
         # Check auxiliary processes
         finishedWorkers = []
         for i in range( len( self.state[ 'CnCAuxiliary' ] ) ):
@@ -402,3 +427,47 @@ class CommandAndControl( LoggedBase ):
                 self.state[ 'target_count' ] 
             )
         )
+
+    def checkConnection( self ):
+        """
+                Check connection integrity to make sure we 
+            still have a valid connection, if not all bots
+            should be paused until we can obtain a connection.
+            Because icmp requires raw sockets, and raw sockets
+            require root, we use an application layer check to
+            keep the protocols begnign. By completing the handshake
+            we can be sure connection remains intact.
+
+            @return BOOL True  - Connection Integrity Remains
+                         False - Connection Failed, Pause Workers 
+        """
+        sock = socket( AF_INET, SOCK_STREAM )
+
+        try:
+            sock.connect(( choice( self.state[ 'conPoll' ] ), 80 ) )
+        except SOCKET_ERROR:
+            return False
+        return True
+
+    def connectionPoll( self, interval = 5 ):
+        """
+              check the connection over a given interval
+            pausing/continuing workforce as the need
+            arises.
+
+            @param INT interval - time in minutes to check connection 
+            
+        """
+        if self.state[ 'lastTCheck' ] is None:
+            self.state[ 'lastTCheck' ] = datetime.now()
+        elif ( datetime.now() - self.state[ 'lastTCheck' ] ).seconds < interval * 60:
+            return
+
+        if not self.checkConnection():
+            if not self.state[ 'botsPaused' ]:
+               self.pauseWorkforce()
+
+               while not self.connectionPoll():
+                   self._nap()
+
+               self.pauseWorkforce()
