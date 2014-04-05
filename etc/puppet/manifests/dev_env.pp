@@ -31,9 +31,13 @@ class dev_env {
             name    => 'python-setuptools',
             require => Package[ 'GIT' ];
 
+        'TMUX':
+            name    => 'tmux',
+            require => Package[ 'SETUPTOOLS' ];
+
         'PIP':
             name    => 'python-pip',
-            require => Package[ 'SETUPTOOLS' ];
+            require => Package[ 'TMUX' ]; 
 
         'SENDMAIL':
             name    => 'sendmail-bin',
