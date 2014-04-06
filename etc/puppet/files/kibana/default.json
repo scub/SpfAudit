@@ -306,8 +306,16 @@
       "query": "*",
       "pinned": true,
       "history": [
-        "*",
         "type:Node",
+        "type:Node && (mx_hosted:Internal|(( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))",
+        "type:Node && ((mx_hosted:External && spf_method:None )|(( mx_hosted:External | mx_hosted:Google ) && ( spf_method:Neutral | spf_method:SoftFail )))",
+        "type:Node && (( mx_hosted:Google && spf_method:None )|( mx_hosted:External && spf_method:Pass ))",
+        "type:Node && mx_hosted:Internal",
+        "type:Node && ((( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))",
+        "type:Node && ( mx_hosted:Internal |(( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))",
+        "",
+        "*",
+        "type:Node && ( mx_hosted:internal | (( mx_hosted:External | mx_hosted:Google ) && ( spf_method:HardFail | spf_method:Fail )))"
       ],
       "remember": 10
     },
