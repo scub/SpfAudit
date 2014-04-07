@@ -59,6 +59,9 @@ class LoggedBase( object ):
 
             # Nap Weight
             'deltaL'   : None,
+
+            # Max nap
+            'maxNap'   : 60,
         }
 
         # Stats Fed By Menu System
