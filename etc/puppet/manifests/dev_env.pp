@@ -3,11 +3,12 @@
 # Required Dependencies.
 #
 #
+
 class dev_env {
 
     # Global Templates
     Package { ensure => latest }
-    File    { owner  => vagrant,  group => vagrant }
+    File    { owner  => $base_user,  group => $base_user }
 
     file {
         'Geoip Data':
@@ -80,7 +81,7 @@ class dev_env {
             require => Exec[ 'download-geoip-database' ];
 
         'set-perms-geoip':
-            command => "/bin/chown -R vagrant:vagrant /usr/share/geoip",
+            command => "/bin/chown -R $base_user:$base_user /usr/share/geoip",
             require => Exec[ 'extract-geoip-databases' ];
     }
 
@@ -109,7 +110,7 @@ class dev_env {
 
         'Bashrc':
             ensure => file,
-            path   => "/home/vagrant/.bashrc",
+            path   => "/home/$base_user/.bashrc",
             source => "/vagrant/etc/puppet/files/host/bashrc";
 
     }

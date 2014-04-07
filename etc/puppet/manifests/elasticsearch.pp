@@ -1,12 +1,12 @@
 
 class elasticsearch {
 
-    group {
-        'ElasticSearch-ServiceGroup':
-            ensure => present,
-            system => true,
-            name   => 'elasticsearch';
-    }
+    #group {
+    #    'ElasticSearch-ServiceGroup':
+    #        ensure => present,
+    #        system => true,
+    #        name   => 'elasticsearch';
+    #}
 
     user {
         'ElasticSearch-ServiceUser':
@@ -14,7 +14,7 @@ class elasticsearch {
             system  => true,
             name    => 'elasticsearch',
             comment => 'Elasticsearch Service User',
-            require => Group[ 'ElasticSearch-ServiceGroup' ];
+    #        require => Group[ 'ElasticSearch-ServiceGroup' ];
     }
 
     exec {

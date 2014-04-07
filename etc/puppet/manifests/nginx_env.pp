@@ -8,6 +8,7 @@ class nginx_env {
     }
 
     File { owner => 'nginx', group => 'nginx' }
+
     file {
         'Nginx-Base-Config':
             ensure  => file,

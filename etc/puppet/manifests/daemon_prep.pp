@@ -5,19 +5,20 @@ class daemon_prep {
     User  { system => true }
 
     # Service User Groups
-    group {
-        'NGINX-ServiceGroup':
-            ensure => present,
-            name   => 'nginx';
-    }
+    #group {
+    #    'NGINX-ServiceGroup':
+    #        ensure => present,
+    #        name   => 'nginx';
+    #}
 
     user {
         'NGINX-ServiceUser':
             ensure  => present,
+            gid     => "nginx",
             name    => 'nginx',
             home    => '/usr/local/www',
             comment => 'Nginx Service User',
-            require => Group[ 'NGINX-ServiceGroup' ];
+            #require => Group[ 'NGINX-ServiceGroup' ];
     }
 
     file {

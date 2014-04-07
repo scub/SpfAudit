@@ -1,16 +1,16 @@
 
 class fwall {
 
-    class     { 'firewall': } ->
+    class     { 'firewall': } 
 
-    resources { 'firewall': purge => true } ->
+    resources { 'firewall': purge => true, require => Class[ 'firewall' ]; } 
 
     firewall  {
             
         "000 ICMP":
             proto   => "icmp",
             action  => "accept",
-            require => Class[ 'firewall' ];
+            require => Resources[ 'firewall' ];
 
         "001 Loopback":
             proto   => "all",

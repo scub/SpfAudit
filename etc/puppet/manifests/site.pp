@@ -11,11 +11,30 @@ import 'fwall'
 # information to boot on.
 #
 node 'ubuntu1310-i386' {
-    include bootstrap 
 
-    notify { 'Spam': message => 'Bootstrap successful, run vagrant reload so that all changes take effect.' }
+    include bootstrap, dev_env, daemon_prep, elasticsearch, nginx_env, sql, fwall
 
-    Class[ 'bootstrap' ] -> Notify[ 'Spam' ] 
+    $base_user = "ubuntu"
+
+    Class[ 'bootstrap'     ] -> Class[ 'dev_env'   ] -> Class[ 'daemon_prep' ] ->
+    Class[ 'elasticsearch' ] -> Class[ 'nginx_env' ] -> Class[ 'sql'         ] ->
+    Class[ 'fwall'         ]
+
+}
+
+#
+#  To The Cloud!!! 
+#
+node /^.*\.ec2\.internal$/ {
+
+    include bootstrap, dev_env, daemon_prep, elasticsearch, nginx_env, sql, fwall
+
+    $base_user = "ubuntu"
+
+    Class[ 'bootstrap'     ] -> Class[ 'dev_env'   ] -> Class[ 'daemon_prep' ] ->
+    Class[ 'elasticsearch' ] -> Class[ 'nginx_env' ] -> Class[ 'sql'         ] ->
+    Class[ 'fwall'         ]
+
 }
 
 #   After Bootstrapping we install our dev
@@ -25,6 +44,8 @@ node 'ubuntu1310-i386' {
 node 'spf' {
 
     include bootstrap, dev_env, daemon_prep, elasticsearch, nginx_env, sql, fwall
+
+    $base_user = "ubuntu"
 
     Class[ 'bootstrap'     ] -> Class[ 'dev_env'   ] -> Class[ 'daemon_prep' ] ->
     Class[ 'elasticsearch' ] -> Class[ 'nginx_env' ] -> Class[ 'sql'         ] ->

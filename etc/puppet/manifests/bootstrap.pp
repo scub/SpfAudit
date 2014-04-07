@@ -49,20 +49,41 @@ class bootstrap {
         'Set Hostname':
             command => "/bin/hostname -F /etc/hostname",
             require => File[ '/etc/motd' ];
+        
+        'Puppetlabs-Stdlib':
+            command => "/usr/bin/puppet module install puppetlabs-stdlib",
+            creates => "/etc/puppet/modules/stdlib",
+            cwd     => "/etc/puppet/modules/",
+            require => Exec[ 'Set Hostname' ];
+
+        'Puppetlabs-Firewall':
+            command => "/usr/bin/puppet module install puppetlabs-firewall",
+            creates => "/etc/puppet/modules/firewall",
+            cwd     => "/etc/puppet/modules/",
+            require => Exec[ 'Puppetlabs-Stdlib' ];
+
+        'Puppetlabs-Apt':
+            command => "/usr/bin/puppet module install puppetlabs-apt",
+            creates => "/etc/puppet/modules/apt",
+            cwd     => "/etc/puppet/modules/",
+            require => Exec[ 'Puppetlabs-Firewall' ];
+
+        'Ripienaar-Concat':
+            command => "/usr/bin/puppet module install ripienaar-concat",
+            creates => "/etc/puppet/modules/concat",
+            cwd     => "/etc/puppet/modules/",
+            require => Exec[ 'Puppetlabs-Apt' ];
 
         'Puppetlabs-Postgresql':
-            command => "/usr/bin/puppet module install puppetlabs-postgresql --modulepath /etc/puppet/modules",
+            command => "/usr/bin/puppet module install puppetlabs-postgresql --version 2.5.0",
             creates => "/etc/puppet/modules/postgresql",
-            require => Exec[ 'Set Hostname' ];
+            cwd     => "/etc/puppet/modules/",
+            require => Exec[ 'Ripienaar-Concat' ];
 
         'Flush Stale Repo Cache':
             command => '/usr/bin/apt-get update && /usr/bin/apt-get upgrade -y',
             timeout => 1200,
             require => Exec[ 'Puppetlabs-Postgresql' ];
 
-        'Update Guest Utils':
-            command => '/usr/bin/apt-get install -y virtualbox-guest-utils',
-            timeout => 900,
-            require => Exec[ 'Flush Stale Repo Cache' ];
     }
 }
