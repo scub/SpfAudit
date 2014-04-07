@@ -7,8 +7,8 @@ class sql {
     # Create SpfAudit Database And User
     postgresql::server::db {
         'SpfAudit':
-            user     => 'vagrant',
-            password => postgresql_password( 'vagrant', 'ThGK4E4!UxJOElzMq5RysiG6j' );
+            user     => 'ubuntu',
+            password => postgresql_password( 'ubuntu', 'ThGK4E4!UxJOElzMq5RysiG6j' );
     } 
 
     # Python API
