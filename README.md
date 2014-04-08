@@ -15,9 +15,10 @@ straightforward way to integrate Google mail for a small business, it makes it
 easy for an administrator to forget about security, which after all, is an
 ever important concern within information technology. It is worth noting that
 Google offered these services to the general public free of charge, during a
-lengthy a beta phase.
+lengthy beta phase, which only further enticed small businesses to take advantage
+of these services. 
 
-  Because smtp requires no authentication, when mail exchanges and their
+  Because SMTP requires no authentication, when mail exchanges and their
 corresponding DNS records are not appropriately locked down, any user can
 essentially spoof their mail to look as though it had been sent using these
 exchanges without any type of verification required. My project will involve
@@ -73,7 +74,6 @@ http://localhost:8080
 
 Upcoming Changes/Events
 -----------------------
- - Connection Polling for scan initialization and sanity checks
  - Extend Vagrantfile to allow for cloud based deployment
  - "The Big Run"
 
